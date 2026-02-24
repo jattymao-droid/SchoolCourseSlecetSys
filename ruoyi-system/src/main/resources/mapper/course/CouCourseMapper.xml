@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.CouCourseMapper">
+
+    <resultMap type="com.ruoyi.common.core.domain.entity.CouCourse" id="CouCourseResult">
+        <id     property="id"          column="id"          />
+        <result property="courseName"  column="course_name" />
+        <result property="weekDay"      column="week_day"    />
+        <result property="gradeId"     column="grade_id"    />
+        <result property="teacherId"   column="teacher_id"  />
+        <result property="description" column="description"/>
+        <result property="semesterId"  column="semester_id" />
+        <result property="delFlag"     column="del_flag"    />
+        <result property="createTime"  column="create_time" />
+        <result property="gradeName"   column="grade_name" />
+        <result property="teacherName" column="teacher_name" javaType="String"/>
+        <result property="location"     column="location"     />
+        <result property="semesterName" column="semester_name"/>
+        <result property="quota"       column="quota"       />
+        <result property="selected"    column="selected"    />
+    </resultMap>
+
+    <sql id="selectCourseVo">
+        select c.id, c.course_name, c.week_day, c.grade_id, c.teacher_id, c.description, coalesce(c.location, '') as location, c.semester_id, c.del_flag, c.create_time,
+               g.grade_name, coalesce(u.nick_name, c.teacher_name) as teacher_name, s.semester_name
+        from cou_course c
+        left join sys_grade g on c.grade_id = g.id
+        left join sys_user u on c.teacher_id = u.user_id
+        left join sys_semester s on c.semester_id = s.id
+    </sql>
+
+    <select id="selectCourseList" parameterType="com.ruoyi.common.core.domain.entity.CouCourse" resultMap="CouCourseResult">
+        select c.id, c.course_name, c.week_day, c.grade_id, c.teacher_id, c.description, coalesce(c.location, '') as location, c.semester_id, c.del_flag, c.create_time,
+               g.grade_name, coalesce(u.nick_name, c.teacher_name) as teacher_name, s.semester_name
+               <if test="classId != null">, q.quota, q.selected</if>
+        from cou_course c
+        left join sys_grade g on c.grade_id = g.id
+        left join sys_user u on c.teacher_id = u.user_id
+        left join sys_semester s on c.semester_id = s.id
+        <if test="classId != null">
+        left join cou_class_quota q on c.id = q.course_id and q.class_id = #{classId} and q.del_flag = '0'
+        </if>
+        where c.del_flag = '0'
+        <if test="courseName != null and courseName != ''">
+            <bind name="courseNamePattern" value="'%' + courseName + '%'" />
+            AND c.course_name like #{courseNamePattern}
+        </if>
+        <if test="weekDay != null">
+            AND c.week_day = #{weekDay}
+        </if>
+        <if test="gradeId != null">
+            AND c.grade_id = #{gradeId}
+        </if>
+        <if test="semesterId != null">
+            AND c.semester_id = #{semesterId}
+        </if>
+        <if test="teacherId != null">
+            AND c.teacher_id = #{teacherId}
+        </if>
+        <if test="location != null and location != ''">
+            <bind name="locationPattern" value="'%' + location + '%'" />
+            AND c.location like #{locationPattern}
+        </if>
+        order by c.week_day asc, c.id asc
+    </select>
+
+    <select id="selectCourseById" parameterType="Long" resultMap="CouCourseResult">
+        <include refid="selectCourseVo"/>
+        where c.id = #{id} and c.del_flag = '0'
+    </select>
+
+    <insert id="insertCourse" parameterType="com.ruoyi.common.core.domain.entity.CouCourse" useGeneratedKeys="true" keyProperty="id">
+        insert into cou_course(course_name, week_day, grade_id, teacher_id, teacher_name, description, location, semester_id, create_time)
+        values (#{courseName}, #{weekDay}, #{gradeId}, #{teacherId}, #{teacherName}, #{description}, #{location}, #{semesterId}, CURRENT_TIMESTAMP)
+    </insert>
+
+    <update id="updateCourse" parameterType="com.ruoyi.common.core.domain.entity.CouCourse">
+        update cou_course
+        <set>
+            <if test="courseName != null and courseName != ''">course_name = #{courseName},</if>
+            <if test="weekDay != null">week_day = #{weekDay},</if>
+            <if test="gradeId != null">grade_id = #{gradeId},</if>
+            <if test="teacherId != null">teacher_id = #{teacherId},</if>
+            <if test="teacherId == null">teacher_id = null,</if>
+            <if test="teacherName != null">teacher_name = #{teacherName},</if>
+            <if test="teacherName == null">teacher_name = null,</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="location != null">location = #{location},</if>
+            <if test="location == null">location = null,</if>
+            <if test="semesterId != null">semester_id = #{semesterId},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <update id="deleteCourseById" parameterType="Long">
+        update cou_course set del_flag = '2' where id = #{id}
+    </update>
+
+    <select id="selectSelectedStudentsByCourseId" resultType="com.ruoyi.system.domain.CourseSelectedStudentVO">
+        select i.user_id as userId, i.student_no as studentNo, i.real_name as realName, c.class_name as className, s.create_time as createTime
+        from stu_selection s
+        join stu_student_info i on s.student_id = i.user_id and i.del_flag = '0'
+        left join sys_class c on i.class_id = c.id
+        where s.course_id = #{courseId} and s.status = 1
+        order by s.create_time asc
+    </select>
+
+    <resultMap type="com.ruoyi.system.domain.PopularCourseVO" id="PopularCourseResult">
+        <result property="courseId" column="course_id"/>
+        <result property="courseName" column="course_name"/>
+        <result property="teacherName" column="teacher_name"/>
+        <result property="weekDay" column="week_day"/>
+        <result property="selectedCount" column="selected_count"/>
+    </resultMap>
+    <select id="selectPopularCourses" resultMap="PopularCourseResult">
+        select c.id as course_id, c.course_name, coalesce(u.nick_name, c.teacher_name) as teacher_name, c.week_day,
+               count(s.id) as selected_count
+        from cou_course c
+        left join stu_selection s on s.course_id = c.id and s.semester_id = #{semesterId} and s.status = 1
+        left join sys_user u on c.teacher_id = u.user_id
+        where c.semester_id = #{semesterId} and c.del_flag = '0'
+        group by c.id, c.course_name, c.teacher_name, u.nick_name, c.week_day
+        order by selected_count desc
+        limit #{limit}
+    </select>
+</mapper>

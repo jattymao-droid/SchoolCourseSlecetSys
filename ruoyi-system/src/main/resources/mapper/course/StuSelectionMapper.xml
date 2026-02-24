@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.StuSelectionMapper">
+
+    <insert id="insertSelection" parameterType="com.ruoyi.common.core.domain.entity.StuSelection">
+        insert into stu_selection(student_id, course_id, semester_id, week_day, class_id, status, create_time)
+        values (#{studentId}, #{courseId}, #{semesterId}, #{weekDay}, #{classId}, coalesce(#{status}, 1), CURRENT_TIMESTAMP)
+    </insert>
+
+    <select id="countByStudentSemesterWeekDay" resultType="int">
+        select count(*) from stu_selection
+        where student_id = #{studentId} and semester_id = #{semesterId} and week_day = #{weekDay} and status = 1
+    </select>
+
+    <select id="countByStudentAndCourse" resultType="int">
+        select count(*) from stu_selection
+        where student_id = #{studentId} and course_id = #{courseId} and status = 1
+    </select>
+
+    <resultMap type="com.ruoyi.system.domain.MySelectionVO" id="MySelectionVOResult">
+        <id     property="id"          column="id"          />
+        <result property="courseId"    column="course_id"   />
+        <result property="courseName"  column="course_name" />
+        <result property="weekDay"     column="week_day"    />
+        <result property="teacherName" column="teacher_name"/>
+        <result property="classId"     column="class_id"    />
+        <result property="className"   column="class_name"  />
+        <result property="semesterId"  column="semester_id" />
+        <result property="createTime"  column="create_time" />
+    </resultMap>
+
+    <select id="selectMySelections" resultMap="MySelectionVOResult">
+        select s.id, s.course_id, s.week_day, s.class_id, s.semester_id, s.create_time,
+               c.course_name, c.teacher_name, cl.class_name
+        from stu_selection s
+        join cou_course c on s.course_id = c.id and c.del_flag = '0'
+        left join sys_class cl on s.class_id = cl.id
+        where s.student_id = #{studentId} and s.semester_id = #{semesterId} and s.status = 1
+        order by s.week_day asc, s.id asc
+    </select>
+
+    <select id="selectById" resultType="com.ruoyi.common.core.domain.entity.StuSelection">
+        select id, student_id, course_id, semester_id, week_day, class_id, status, create_time
+        from stu_selection where id = #{id}
+    </select>
+
+    <update id="updateStatus">
+        update stu_selection set status = #{status} where id = #{id}
+    </update>
+
+    <select id="countBySemesterId" resultType="int">
+        select count(*) from stu_selection where semester_id = #{semesterId} and status = 1
+    </select>
+
+    <resultMap type="com.ruoyi.system.domain.SelectionTrendVO" id="SelectionTrendResult">
+        <result property="dateStr" column="date_str"/>
+        <result property="count" column="cnt"/>
+    </resultMap>
+    <select id="selectTrendByDate" resultMap="SelectionTrendResult">
+        select to_char(s.create_time, 'YYYY-MM-DD') as date_str, count(*) as cnt
+        from stu_selection s
+        where s.semester_id = #{semesterId} and s.status = 1
+          and s.create_time >= CURRENT_DATE - (#{days} - 1)
+        group by to_char(s.create_time, 'YYYY-MM-DD')
+        order by date_str asc
+    </select>
+
+    <resultMap type="com.ruoyi.system.domain.RecentSelectionVO" id="RecentSelectionResult">
+        <result property="studentName" column="student_name"/>
+        <result property="courseName" column="course_name"/>
+        <result property="weekDayName" column="week_day_name"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+    <select id="selectRecentSelections" resultMap="RecentSelectionResult">
+        select i.real_name as student_name, c.course_name,
+               case s.week_day when 1 then '周一' when 2 then '周二' when 3 then '周三' when 4 then '周四' when 5 then '周五' else '' end as week_day_name,
+               s.create_time
+        from stu_selection s
+        join stu_student_info i on s.student_id = i.user_id and i.del_flag = '0'
+        join cou_course c on s.course_id = c.id and c.del_flag = '0'
+        where s.semester_id = #{semesterId} and s.status = 1
+        order by s.create_time desc
+        limit #{limit}
+    </select>
+
+    <select id="selectCountByWeekday" resultType="map">
+        select s.week_day as week_day, count(*) as cnt
+        from stu_selection s
+        where s.semester_id = #{semesterId} and s.status = 1
+        group by s.week_day
+        order by s.week_day asc
+    </select>
+</mapper>

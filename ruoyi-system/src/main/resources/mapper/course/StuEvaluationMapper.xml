@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.StuEvaluationMapper">
+
+    <resultMap type="com.ruoyi.common.core.domain.entity.StuEvaluation" id="StuEvaluationResult">
+        <id     property="id"         column="id"          />
+        <result property="studentId"  column="student_id" />
+        <result property="courseId"   column="course_id"   />
+        <result property="questionId" column="question_id" />
+        <result property="score"      column="score"      />
+        <result property="semesterId" column="semester_id" />
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <insert id="insertEvaluation" parameterType="com.ruoyi.common.core.domain.entity.StuEvaluation" useGeneratedKeys="true" keyProperty="id">
+        insert into stu_evaluation(student_id, course_id, question_id, score, semester_id, create_time)
+        values (#{studentId}, #{courseId}, #{questionId}, #{score}, #{semesterId}, CURRENT_TIMESTAMP)
+    </insert>
+
+    <insert id="batchInsertEvaluation" parameterType="java.util.List">
+        insert into stu_evaluation(student_id, course_id, question_id, score, semester_id, create_time)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.studentId}, #{item.courseId}, #{item.questionId}, #{item.score}, #{item.semesterId}, CURRENT_TIMESTAMP)
+        </foreach>
+        ON CONFLICT (student_id, course_id, question_id) DO UPDATE SET score = EXCLUDED.score
+    </insert>
+
+    <select id="selectByStudentCourseQuestion" resultMap="StuEvaluationResult">
+        select id, student_id, course_id, question_id, score, semester_id, create_time
+        from stu_evaluation
+        where student_id = #{studentId} and course_id = #{courseId} and question_id = #{questionId}
+    </select>
+
+    <select id="selectEvaluatedQuestionIds" resultType="java.lang.Long">
+        select question_id from stu_evaluation
+        where student_id = #{studentId} and course_id = #{courseId} and semester_id = #{semesterId}
+    </select>
+</mapper>

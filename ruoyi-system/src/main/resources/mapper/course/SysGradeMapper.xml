@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.SysGradeMapper">
+
+    <resultMap type="com.ruoyi.common.core.domain.entity.SysGrade" id="SysGradeResult">
+        <id     property="id"         column="id"          />
+        <result property="gradeName"  column="grade_name" />
+        <result property="sort"       column="sort"        />
+        <result property="delFlag"    column="del_flag"   />
+        <result property="createTime" column="create_time" />
+    </resultMap>
+
+    <sql id="selectGradeVo">
+        select id, grade_name, sort, del_flag, create_time from sys_grade
+    </sql>
+
+    <select id="selectGradeList" parameterType="com.ruoyi.common.core.domain.entity.SysGrade" resultMap="SysGradeResult">
+        <include refid="selectGradeVo"/>
+        where del_flag = '0'
+        <if test="gradeName != null and gradeName != ''">
+            <bind name="gradeNamePattern" value="'%' + gradeName + '%'" />
+            AND grade_name like #{gradeNamePattern}
+        </if>
+        order by coalesce(sort, 999999) asc, id asc
+    </select>
+
+    <select id="selectGradeById" parameterType="Long" resultMap="SysGradeResult">
+        <include refid="selectGradeVo"/>
+        where id = #{id} and del_flag = '0'
+    </select>
+
+    <select id="checkGradeNameUnique" parameterType="com.ruoyi.common.core.domain.entity.SysGrade" resultMap="SysGradeResult">
+        <include refid="selectGradeVo"/>
+        where grade_name = #{gradeName} and del_flag = '0' limit 1
+    </select>
+
+    <insert id="insertGrade" parameterType="com.ruoyi.common.core.domain.entity.SysGrade" useGeneratedKeys="true" keyProperty="id">
+        insert into sys_grade(grade_name, sort, create_time)
+        values (#{gradeName}, #{sort}, CURRENT_TIMESTAMP)
+    </insert>
+
+    <update id="updateGrade" parameterType="com.ruoyi.common.core.domain.entity.SysGrade">
+        update sys_grade
+        <set>
+            <if test="gradeName != null and gradeName != ''">grade_name = #{gradeName},</if>
+            <if test="sort != null">sort = #{sort},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <update id="deleteGradeById" parameterType="Long">
+        update sys_grade set del_flag = '2' where id = #{id}
+    </update>
+</mapper>

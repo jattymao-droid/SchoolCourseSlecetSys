@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.StuStudentInfoMapper">
+
+    <resultMap type="com.ruoyi.common.core.domain.entity.StuStudentInfo" id="StuStudentInfoResult">
+        <id     property="id"         column="id"          />
+        <result property="userId"     column="user_id"    />
+        <result property="studentNo"   column="student_no" />
+        <result property="realName"    column="real_name"  />
+        <result property="classId"     column="class_id"   />
+        <result property="gradeId"     column="grade_id"   />
+        <result property="delFlag"     column="del_flag"   />
+        <result property="createTime"  column="create_time" />
+        <result property="className"   column="class_name" />
+        <result property="gradeName"   column="grade_name" />
+    </resultMap>
+
+    <sql id="selectStudentVo">
+        select s.id, s.user_id, s.student_no, s.real_name, s.class_id, s.grade_id, s.del_flag, s.create_time,
+               c.class_name, g.grade_name
+        from stu_student_info s
+        left join sys_class c on s.class_id = c.id
+        left join sys_grade g on s.grade_id = g.id
+    </sql>
+
+    <select id="selectStudentList" parameterType="com.ruoyi.common.core.domain.entity.StuStudentInfo" resultMap="StuStudentInfoResult">
+        <include refid="selectStudentVo"/>
+        where s.del_flag = '0'
+        <if test="studentNo != null and studentNo != ''">
+            <bind name="studentNoPattern" value="'%' + studentNo + '%'" />
+            AND s.student_no like #{studentNoPattern}
+        </if>
+        <if test="realName != null and realName != ''">
+            <bind name="realNamePattern" value="'%' + realName + '%'" />
+            AND s.real_name like #{realNamePattern}
+        </if>
+        <if test="classId != null">
+            AND s.class_id = #{classId}
+        </if>
+        <if test="gradeId != null">
+            AND s.grade_id = #{gradeId}
+        </if>
+        order by s.id asc
+    </select>
+
+    <select id="selectStudentById" parameterType="Long" resultMap="StuStudentInfoResult">
+        <include refid="selectStudentVo"/>
+        where s.id = #{id} and s.del_flag = '0'
+    </select>
+
+    <select id="selectStudentByUserId" parameterType="Long" resultMap="StuStudentInfoResult">
+        <include refid="selectStudentVo"/>
+        where s.user_id = #{userId} and s.del_flag = '0'
+    </select>
+
+    <select id="selectStudentByStudentNo" parameterType="String" resultMap="StuStudentInfoResult">
+        <include refid="selectStudentVo"/>
+        where s.student_no = #{studentNo} and s.del_flag = '0' limit 1
+    </select>
+
+    <insert id="insertStudent" parameterType="com.ruoyi.common.core.domain.entity.StuStudentInfo" useGeneratedKeys="true" keyProperty="id">
+        insert into stu_student_info(user_id, student_no, real_name, class_id, grade_id, create_time)
+        values (#{userId}, #{studentNo}, #{realName}, #{classId}, #{gradeId}, CURRENT_TIMESTAMP)
+    </insert>
+
+    <update id="updateStudent" parameterType="com.ruoyi.common.core.domain.entity.StuStudentInfo">
+        update stu_student_info
+        <set>
+            <if test="studentNo != null and studentNo != ''">student_no = #{studentNo},</if>
+            <if test="realName != null and realName != ''">real_name = #{realName},</if>
+            <if test="classId != null">class_id = #{classId},</if>
+            <if test="gradeId != null">grade_id = #{gradeId},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <update id="deleteStudentById" parameterType="Long">
+        update stu_student_info set del_flag = '2' where id = #{id}
+    </update>
+</mapper>

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.EvaQuestionMapper">
+
+    <resultMap type="com.ruoyi.common.core.domain.entity.EvaQuestion" id="EvaQuestionResult">
+        <id     property="id"          column="id"          />
+        <result property="content"     column="content"     />
+        <result property="score"       column="score"       />
+        <result property="sort"        column="sort"        />
+        <result property="semesterId"  column="semester_id" />
+        <result property="status"     column="status"     />
+        <result property="delFlag"     column="del_flag"   />
+        <result property="createTime" column="create_time"/>
+        <result property="semesterName" column="semester_name"/>
+    </resultMap>
+
+    <sql id="selectQuestionVo">
+        select q.id, q.content, q.score, q.sort, q.semester_id, q.status, q.del_flag, q.create_time,
+               s.semester_name
+        from eva_question q
+        left join sys_semester s on q.semester_id = s.id
+    </sql>
+
+    <select id="selectQuestionList" parameterType="com.ruoyi.common.core.domain.entity.EvaQuestion" resultMap="EvaQuestionResult">
+        <include refid="selectQuestionVo"/>
+        where q.del_flag = '0'
+        <if test="content != null and content != ''">
+            AND q.content like concat('%', #{content}, '%')
+        </if>
+        <if test="semesterId != null">
+            AND q.semester_id = #{semesterId}
+        </if>
+        <if test="status != null">
+            AND q.status = #{status}
+        </if>
+        order by q.semester_id desc, q.sort asc nulls last, q.id asc
+    </select>
+
+    <select id="selectQuestionById" parameterType="Long" resultMap="EvaQuestionResult">
+        <include refid="selectQuestionVo"/>
+        where q.id = #{id} and q.del_flag = '0'
+    </select>
+
+    <select id="selectEnabledBySemesterId" parameterType="Long" resultMap="EvaQuestionResult">
+        <include refid="selectQuestionVo"/>
+        where q.del_flag = '0' and q.semester_id = #{semesterId} and q.status = 1
+        order by q.sort asc nulls last, q.id asc
+    </select>
+
+    <insert id="insertQuestion" parameterType="com.ruoyi.common.core.domain.entity.EvaQuestion" useGeneratedKeys="true" keyProperty="id">
+        insert into eva_question(content, score, sort, semester_id, status, create_time)
+        values (#{content}, #{score}, #{sort}, #{semesterId}, #{status}, CURRENT_TIMESTAMP)
+    </insert>
+
+    <update id="updateQuestion" parameterType="com.ruoyi.common.core.domain.entity.EvaQuestion">
+        update eva_question
+        <set>
+            <if test="content != null and content != ''">content = #{content},</if>
+            <if test="score != null">score = #{score},</if>
+            <if test="sort != null">sort = #{sort},</if>
+            <if test="semesterId != null">semester_id = #{semesterId},</if>
+            <if test="status != null">status = #{status},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <update id="deleteQuestionById" parameterType="Long">
+        update eva_question set del_flag = '2' where id = #{id}
+    </update>
+</mapper>

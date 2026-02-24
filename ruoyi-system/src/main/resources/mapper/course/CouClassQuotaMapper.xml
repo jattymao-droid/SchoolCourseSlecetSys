@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.CouClassQuotaMapper">
+
+    <resultMap type="com.ruoyi.common.core.domain.entity.CouClassQuota" id="CouClassQuotaResult">
+        <id     property="id"        column="id"          />
+        <result property="courseId"  column="course_id"   />
+        <result property="classId"   column="class_id"    />
+        <result property="quota"     column="quota"       />
+        <result property="selected"  column="selected"    />
+        <result property="delFlag"   column="del_flag"    />
+        <result property="createTime" column="create_time"/>
+        <result property="className" column="class_name"  />
+    </resultMap>
+
+    <sql id="selectQuotaVo">
+        select q.id, q.course_id, q.class_id, q.quota, q.selected, q.del_flag, q.create_time, c.class_name
+        from cou_class_quota q
+        left join sys_class c on q.class_id = c.id
+    </sql>
+
+    <select id="selectQuotaByCourseId" parameterType="Long" resultMap="CouClassQuotaResult">
+        <include refid="selectQuotaVo"/>
+        where q.course_id = #{courseId} and q.del_flag = '0'
+        order by q.id asc
+    </select>
+
+    <select id="selectByCourseAndClass" resultMap="CouClassQuotaResult">
+        <include refid="selectQuotaVo"/>
+        where q.course_id = #{courseId} and q.class_id = #{classId} and q.del_flag = '0' limit 1
+    </select>
+
+    <insert id="insertQuota" parameterType="com.ruoyi.common.core.domain.entity.CouClassQuota" useGeneratedKeys="true" keyProperty="id">
+        insert into cou_class_quota(course_id, class_id, quota, selected, create_time)
+        values (#{courseId}, #{classId}, #{quota}, coalesce(#{selected}, 0), CURRENT_TIMESTAMP)
+    </insert>
+
+    <insert id="batchInsertQuota" parameterType="com.ruoyi.common.core.domain.entity.CouClassQuota">
+        insert into cou_class_quota(course_id, class_id, quota, selected, create_time)
+        values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.courseId}, #{item.classId}, #{item.quota}, coalesce(#{item.selected}, 0), CURRENT_TIMESTAMP)
+        </foreach>
+    </insert>
+
+    <update id="deleteByCourseId" parameterType="Long">
+        update cou_class_quota set del_flag = '2' where course_id = #{courseId}
+    </update>
+
+    <delete id="physicalDeleteByCourseId" parameterType="Long">
+        delete from cou_class_quota where course_id = #{courseId}
+    </delete>
+
+    <update id="updateQuota" parameterType="com.ruoyi.common.core.domain.entity.CouClassQuota">
+        update cou_class_quota
+        <set>
+            <if test="quota != null">quota = #{quota},</if>
+            <if test="selected != null">selected = #{selected},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <update id="incrementSelected">
+        update cou_class_quota set selected = selected + 1
+        where course_id = #{courseId} and class_id = #{classId} and del_flag = '0'
+    </update>
+
+    <update id="incrementSelectedIfAvailable">
+        update cou_class_quota set selected = selected + 1
+        where course_id = #{courseId} and class_id = #{classId} and del_flag = '0' and selected &lt; quota
+    </update>
+
+    <update id="decrementSelected">
+        update cou_class_quota set selected = selected - 1
+        where course_id = #{courseId} and class_id = #{classId} and del_flag = '0' and selected > 0
+    </update>
+</mapper>

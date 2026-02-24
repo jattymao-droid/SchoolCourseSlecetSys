@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.SysSemesterMapper">
+
+    <resultMap type="com.ruoyi.common.core.domain.entity.SysSemester" id="SysSemesterResult">
+        <id     property="id"           column="id"            />
+        <result property="semesterName" column="semester_name" />
+        <result property="startDate"     column="start_date"   />
+        <result property="endDate"      column="end_date"     />
+        <result property="isCurrent"    column="is_current"   />
+        <result property="delFlag"      column="del_flag"     />
+        <result property="createBy"     column="create_by"    />
+        <result property="createTime"   column="create_time"   />
+        <result property="updateBy"     column="update_by"    />
+        <result property="updateTime"   column="update_time"  />
+    </resultMap>
+
+    <sql id="selectSemesterVo">
+        select id, semester_name, start_date, end_date, is_current, del_flag, create_by, create_time, update_by, update_time
+        from sys_semester
+    </sql>
+
+    <select id="selectSemesterList" parameterType="com.ruoyi.common.core.domain.entity.SysSemester" resultMap="SysSemesterResult">
+        <include refid="selectSemesterVo"/>
+        where del_flag = '0'
+        <if test="semesterName != null and semesterName != ''">
+            AND semester_name like concat('%', #{semesterName}, '%')
+        </if>
+        <if test="isCurrent != null">
+            AND is_current = #{isCurrent}
+        </if>
+        order by start_date desc
+    </select>
+
+    <select id="selectSemesterById" parameterType="Long" resultMap="SysSemesterResult">
+        <include refid="selectSemesterVo"/>
+        where id = #{id} and del_flag = '0'
+    </select>
+
+    <insert id="insertSemester" parameterType="com.ruoyi.common.core.domain.entity.SysSemester" useGeneratedKeys="true" keyProperty="id">
+        insert into sys_semester(
+            <if test="semesterName != null and semesterName != ''">semester_name,</if>
+            <if test="startDate != null">start_date,</if>
+            <if test="endDate != null">end_date,</if>
+            <if test="isCurrent != null">is_current,</if>
+            create_by,
+            create_time
+        ) values (
+            <if test="semesterName != null and semesterName != ''">#{semesterName},</if>
+            <if test="startDate != null">#{startDate},</if>
+            <if test="endDate != null">#{endDate},</if>
+            <if test="isCurrent != null">#{isCurrent},</if>
+            #{createBy},
+            CURRENT_TIMESTAMP
+        )
+    </insert>
+
+    <update id="updateSemester" parameterType="com.ruoyi.common.core.domain.entity.SysSemester">
+        update sys_semester
+        <set>
+            <if test="semesterName != null and semesterName != ''">semester_name = #{semesterName},</if>
+            <if test="startDate != null">start_date = #{startDate},</if>
+            <if test="endDate != null">end_date = #{endDate},</if>
+            <if test="isCurrent != null">is_current = #{isCurrent},</if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+            update_time = CURRENT_TIMESTAMP
+        </set>
+        where id = #{id}
+    </update>
+
+    <update id="deleteSemesterById" parameterType="Long">
+        update sys_semester set del_flag = '2' where id = #{id}
+    </update>
+
+    <update id="clearCurrentSemester">
+        update sys_semester set is_current = 0 where del_flag = '0'
+    </update>
+
+    <update id="setCurrentSemester" parameterType="Long">
+        update sys_semester set is_current = 1 where id = #{id} and del_flag = '0'
+    </update>
+</mapper>
