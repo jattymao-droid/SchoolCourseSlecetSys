@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="app-container">
     <el-row :gutter="10">
       <el-col :span="8">
@@ -8,7 +8,7 @@
             <el-button
               style="float: right; padding: 3px 0"
               link
-              type="primary"
+              type="warning"
               icon="Refresh"
               @click="refreshCacheNames()"
             ></el-button>
@@ -50,7 +50,7 @@
               <template #default="scope">
                 <el-button
                   link
-                  type="primary"
+                  type="danger"
                   icon="Delete"
                   @click="handleClearCacheName(scope.row)"
                 ></el-button>
@@ -67,7 +67,7 @@
             <el-button
               style="float: right; padding: 3px 0"
               link
-              type="primary"
+              type="warning"
               icon="Refresh"
               @click="refreshCacheKeys()"
             ></el-button>
@@ -101,7 +101,7 @@
               <template #default="scope">
                 <el-button
                   link
-                  type="primary"
+                  type="danger"
                   icon="Delete"
                   @click="handleClearCacheKey(scope.row)"
                 ></el-button>
@@ -118,7 +118,7 @@
             <el-button
               style="float: right; padding: 3px 0"
               link
-              type="primary"
+              type="warning"
               icon="Refresh"
               @click="handleClearCacheAll()"
               >清理全部</el-button

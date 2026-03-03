@@ -1,9 +1,15 @@
 <template>
-  <el-breadcrumb class="app-breadcrumb" separator="/">
+  <el-breadcrumb class="app-breadcrumb" :separator-icon="ArrowRight">
     <transition-group name="breadcrumb">
       <el-breadcrumb-item v-for="(item, index) in levelList" :key="item.path">
-        <span v-if="item.redirect === 'noRedirect' || index == levelList.length - 1" class="no-redirect">{{ item.meta.title }}</span>
-        <a v-else @click.prevent="handleLink(item)">{{ item.meta.title }}</a>
+        <span v-if="item.redirect === 'noRedirect' || index == levelList.length - 1" class="no-redirect">
+          <svg-icon v-if="item.meta && item.meta.icon && item.meta.icon !== '#'" :icon-class="item.meta.icon" class="breadcrumb-icon" />
+          {{ item.meta.title }}
+        </span>
+        <a v-else @click.prevent="handleLink(item)">
+          <svg-icon v-if="item.meta && item.meta.icon && item.meta.icon !== '#'" :icon-class="item.meta.icon" class="breadcrumb-icon" />
+          {{ item.meta.title }}
+        </a>
       </el-breadcrumb-item>
     </transition-group>
   </el-breadcrumb>
@@ -11,6 +17,7 @@
 
 <script setup>
 import usePermissionStore from '@/store/modules/permission'
+import { ArrowRight } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -34,7 +41,7 @@ function getBreadcrumb() {
   }
   // 判断是否为首页
   if (!isDashboard(matched[0])) {
-    matched = [{ path: "/index", meta: { title: "首页" } }].concat(matched)
+    matched = [{ path: "/index", meta: { title: "首页", icon: "dashboard" } }].concat(matched)
   }
   levelList.value = matched.filter(item => item.meta && item.meta.title && item.meta.breadcrumb !== false)
 }
@@ -88,10 +95,34 @@ getBreadcrumb()
   display: inline-block;
   font-size: 14px;
   line-height: 50px;
+  margin-left: 8px;
 
   .no-redirect {
     color: #97a8be;
     cursor: text;
+    display: inline-flex;
+    align-items: center;
+    font-weight: 600;
+  }
+  
+  a {
+    color: #5a5e66;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    font-weight: 400;
+    transition: color 0.2s;
+    
+    &:hover {
+      color: #3B5BDB;
+      font-weight: 600;
+    }
+  }
+  
+  .breadcrumb-icon {
+    margin-right: 4px;
+    font-size: 14px;
+    vertical-align: -0.15em;
   }
 }
 </style>

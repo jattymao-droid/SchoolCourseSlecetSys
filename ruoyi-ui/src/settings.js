@@ -52,6 +52,6 @@ export default {
   /**
    * 底部版权文本内容
    */
-  footerContent: 'Copyright © 2026 东陆高中. All Rights Reserved.'
+  footerContent: 'Copyright © 2026 会泽县东陆高级中学校. All Rights Reserved.'
 }
 

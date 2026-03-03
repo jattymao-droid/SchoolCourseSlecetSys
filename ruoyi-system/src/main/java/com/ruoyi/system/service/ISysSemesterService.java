@@ -64,4 +64,18 @@ public interface ISysSemesterService
      * @return 当前学期，无则返回null
      */
     SysSemester getCurrentSemester();
+
+    /**
+     * 开始选课：将当前学期的选课时间设为 now ~ now+1年
+     *
+     * @return 结果
+     */
+    int startSelection();
+
+    /**
+     * 结束选课：将当前学期的选课结束时间设为 now
+     *
+     * @return 结果
+     */
+    int endSelection();
 }

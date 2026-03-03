@@ -48,6 +48,7 @@ const usePermissionStore = defineStore(
             this.setSidebarRouters(constantRoutes.concat(sidebarRoutes))
             this.setDefaultRoutes(sidebarRoutes)
             this.setTopbarRoutes(defaultRoutes)
+            preloadTeacherAssessment()
             resolve(rewriteRoutes)
           }).catch(err => {
             reject(err)
@@ -72,7 +73,7 @@ function filterAsyncRouter(asyncRouterMap, lastRouter = false, type = false) {
       } else if (route.component === 'InnerLink') {
         route.component = InnerLink
       } else {
-        route.component = loadView(route.component)
+        route.component = loadViewFallback(route.component) || loadView(route.component)
       }
     }
     if (route.children != null && route.children && route.children.length) {
@@ -130,6 +131,20 @@ export const loadView = (view) => {
     }
   }
   return res
+}
+
+/** loadView 解析失败时的显式兜底（解决部分环境 glob 路径匹配异常）；教师考核优先走此路径避免首次点击不显示 */
+function loadViewFallback(view) {
+  const map = {
+    'course/teacherAssessment/index': () => import('@/views/course/teacherAssessment/index.vue')
+  }
+  const normalized = (view || '').replace(/\\/g, '/')
+  return map[normalized] || null
+}
+
+/** 预加载教师考核组件，避免首次点击菜单时页面空白 */
+export function preloadTeacherAssessment() {
+  import('@/views/course/teacherAssessment/index.vue')
 }
 
 export default usePermissionStore

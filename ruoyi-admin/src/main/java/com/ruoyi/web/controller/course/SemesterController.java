@@ -119,4 +119,28 @@ public class SemesterController extends BaseController
     {
         return success(semesterService.getCurrentSemester());
     }
+
+    /**
+     * 开始选课（当前学期）
+     */
+    @PreAuthorize("@ss.hasPermi('course:course:edit') or @ss.hasPermi('course:semester:edit')")
+    @Log(title = "选课管理", businessType = BusinessType.UPDATE)
+    @PutMapping("/startSelection")
+    public AjaxResult startSelection()
+    {
+        int rows = semesterService.startSelection();
+        return rows > 0 ? success() : error("无当前学期或操作失败");
+    }
+
+    /**
+     * 结束选课（当前学期）
+     */
+    @PreAuthorize("@ss.hasPermi('course:course:edit') or @ss.hasPermi('course:semester:edit')")
+    @Log(title = "选课管理", businessType = BusinessType.UPDATE)
+    @PutMapping("/endSelection")
+    public AjaxResult endSelection()
+    {
+        int rows = semesterService.endSelection();
+        return rows > 0 ? success() : error("无当前学期或操作失败");
+    }
 }

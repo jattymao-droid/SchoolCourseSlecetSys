@@ -8,21 +8,21 @@ $tiffany: #4AB7BD;
 $yellow: #FEC171;
 $panGreen: #30B08F;
 
-// 默认主题变量 (极简纯白侧边栏主题)
-$menuText: #5E6E82;
-$menuActiveText: #0F172A;
-$menuBg: #ffffff;
-$menuHover: #F8F9FA;
+// 默认主题变量 (现代化浅色侧边栏主题)
+$menuText: #64748B;
+$menuActiveText: #4F46E5;
+$menuBg: #F8FAFC;
+$menuHover: #EEF2FF;
 
-// 浅色主题theme-light (保持一致)
-$menuLightBg: #ffffff;
-$menuLightHover: #F8F9FA;
-$menuLightText: #5E6E82;
-$menuLightActiveText: #0F172A;
+// 浅色主题theme-light (现代化配色)
+$menuLightBg: #F8FAFC;
+$menuLightHover: #EEF2FF;
+$menuLightText: #64748B;
+$menuLightActiveText: #4F46E5;
 
 // 基础变量
-$base-sidebar-width: 200px;
-$sideBarWidth: 200px;
+$base-sidebar-width: 260px;
+$sideBarWidth: 260px;
 
 // 菜单暗色变量
 $base-menu-color: #bfcbd9;
@@ -31,12 +31,12 @@ $base-menu-background: #304156;
 $base-sub-menu-background: #1f2d3d;
 $base-sub-menu-hover: #001528;
 
-// 组件变量
-$--color-primary: #3B5BDB;
-$--color-success: #67C23A;
-$--color-warning: #E6A23C;
-$--color-danger: #F56C6C;
-$--color-info: #909399;
+// 组件变量 - 现代化配色
+$--color-primary: #4F46E5; // 更现代的靛蓝色
+$--color-success: #10B981; // 翠绿色
+$--color-warning: #F59E0B; // 琥珀色
+$--color-danger: #EF4444; // 红色
+$--color-info: #6B7280; // 灰色
 
 :export {
   menuText: $menuText;

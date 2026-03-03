@@ -1,4 +1,4 @@
-
+﻿
 <template>
    <div class="app-container">
       <el-form :model="queryParams" ref="queryRef" v-show="showSearch" :inline="true">
@@ -29,7 +29,7 @@
       <el-row :gutter="10" class="mb8">
          <el-col :span="1.5">
             <el-button
-               type="primary"
+               type="success"
                plain
                icon="Plus"
                @click="openSelectUser"

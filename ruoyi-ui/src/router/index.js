@@ -83,6 +83,19 @@ export const constantRoutes = [
         meta: { title: '个人中心', icon: 'user' }
       }
     ]
+  },
+  {
+    path: '/course',
+    component: Layout,
+    hidden: true,
+    children: [
+      {
+        path: 'teacherAssessment',
+        component: () => import('@/views/course/teacherAssessment/index'),
+        name: 'TeacherAssessment',
+        meta: { title: '教师考核', activeMenu: '/course/teacherAssessment', noCache: true }
+      }
+    ]
   }
 ]
 
@@ -169,6 +182,20 @@ export const dynamicRoutes = [
         component: () => import('@/views/course/evaluation/index'),
         name: 'CourseEvaluation',
         meta: { title: '评价管理', activeMenu: '/course/evaluation' }
+      }
+    ]
+  },
+  {
+    path: '/course/teacherAssessment',
+    component: Layout,
+    hidden: true,
+    permissions: ['course:teacherAssessment:list'],
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/course/teacherAssessment/index'),
+        name: 'TeacherAssessment',
+        meta: { title: '教师考核', activeMenu: '/course/teacherAssessment', noCache: true }
       }
     ]
   }

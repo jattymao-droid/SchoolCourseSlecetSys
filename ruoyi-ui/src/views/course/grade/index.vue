@@ -19,7 +19,7 @@
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
         <el-button
-          type="primary"
+          type="success"
           plain
           icon="Plus"
           @click="handleAddGrade"
@@ -37,7 +37,7 @@
       </el-col>
       <el-col :span="1.5" v-if="selectedGradeId">
         <el-button
-          type="primary"
+          type="success"
           plain
           icon="Plus"
           @click="handleAddClass"
@@ -50,19 +50,36 @@
     <el-row :gutter="20">
       <!-- 年级列表 -->
       <el-col :span="10">
-        <el-card shadow="never" header="年级列表">
+        <el-card shadow="never" class="grade-card">
+          <template #header>
+            <div class="card-header">
+              <el-icon><Menu /></el-icon>
+              <span>年级列表</span>
+            </div>
+          </template>
           <el-table
             v-loading="gradeLoading"
             :data="gradeList"
             highlight-current-row
             @current-change="handleGradeSelect"
+            class="custom-table"
           >
-            <el-table-column label="年级名称" prop="gradeName" />
-            <el-table-column label="排序" prop="sort" width="80" />
-            <el-table-column label="操作" align="center" width="150">
+            <el-table-column label="年级名称" prop="gradeName" align="center">
               <template #default="scope">
-                <el-button link type="primary" icon="Edit" @click="handleUpdateGrade(scope.row)" v-hasPermi="['course:grade:edit']">修改</el-button>
-                <el-button link type="primary" icon="Delete" @click="handleDeleteGrade(scope.row)" v-hasPermi="['course:grade:remove']">删除</el-button>
+                <span class="grade-name">{{ scope.row.gradeName }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="排序" prop="sort" width="80" align="center" />
+            <el-table-column label="操作" align="center" width="120">
+              <template #default="scope">
+                <div class="action-buttons">
+                  <el-tooltip content="修改" placement="top">
+                    <el-button link type="primary" icon="Edit" @click="handleUpdateGrade(scope.row)" v-hasPermi="['course:grade:edit']"></el-button>
+                  </el-tooltip>
+                  <el-tooltip content="删除" placement="top">
+                    <el-button link type="danger" icon="Delete" @click="handleDeleteGrade(scope.row)" v-hasPermi="['course:grade:remove']"></el-button>
+                  </el-tooltip>
+                </div>
               </template>
             </el-table-column>
           </el-table>
@@ -70,24 +87,43 @@
       </el-col>
       <!-- 班级列表 -->
       <el-col :span="14">
-        <el-card shadow="never">
+        <el-card shadow="never" class="class-card">
           <template #header>
-            <span>班级列表</span>
-            <span v-if="selectedGradeName" class="header-extra">（{{ selectedGradeName }}）</span>
+            <div class="card-header">
+              <div class="left">
+                <el-icon><School /></el-icon>
+                <span>班级列表</span>
+              </div>
+              <el-tag v-if="selectedGradeName" type="primary" effect="plain" class="header-tag">{{ selectedGradeName }}</el-tag>
+            </div>
           </template>
           <el-empty v-if="!selectedGradeId" description="请先选择左侧年级" />
-          <el-table v-else v-loading="classLoading" :data="classList">
-            <el-table-column label="班级名称" prop="className" />
-            <el-table-column label="所属年级" prop="gradeName" width="120" />
-            <el-table-column label="创建时间" prop="createTime" width="180">
+          <el-table v-else v-loading="classLoading" :data="classList" class="custom-table" stripe>
+            <el-table-column label="班级名称" prop="className" align="center">
               <template #default="scope">
-                <span>{{ parseTime(scope.row.createTime) }}</span>
+                <el-tag effect="light">{{ scope.row.className }}</el-tag>
               </template>
             </el-table-column>
-            <el-table-column label="操作" align="center" width="150">
+            <el-table-column label="所属年级" prop="gradeName" width="120" align="center">
               <template #default="scope">
-                <el-button link type="primary" icon="Edit" @click="handleUpdateClass(scope.row)" v-hasPermi="['course:class:edit']">修改</el-button>
-                <el-button link type="primary" icon="Delete" @click="handleDeleteClass(scope.row)" v-hasPermi="['course:class:remove']">删除</el-button>
+                 <el-tag type="info" effect="plain">{{ scope.row.gradeName }}</el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column label="创建时间" prop="createTime" width="180" align="center">
+              <template #default="scope">
+                <span class="time-text">{{ parseTime(scope.row.createTime) }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="操作" align="center" width="120">
+              <template #default="scope">
+                <div class="action-buttons">
+                  <el-tooltip content="修改" placement="top">
+                    <el-button link type="primary" icon="Edit" @click="handleUpdateClass(scope.row)" v-hasPermi="['course:class:edit']"></el-button>
+                  </el-tooltip>
+                  <el-tooltip content="删除" placement="top">
+                    <el-button link type="danger" icon="Delete" @click="handleDeleteClass(scope.row)" v-hasPermi="['course:class:remove']"></el-button>
+                  </el-tooltip>
+                </div>
               </template>
             </el-table-column>
           </el-table>
@@ -343,6 +379,13 @@ getGradeList()
   border-radius: 8px;
   border: 1px solid #eef1fc;
   margin-bottom: 14px;
+  
+  .el-button {
+    height: 34px;
+    padding: 0 16px;
+    font-size: 13px;
+    font-weight: 500;
+  }
 }
 
 // ── 年级卡片 ──────────────────────────────────────────
@@ -351,38 +394,114 @@ getGradeList()
   border-color: #dde6ff;
   box-shadow: 0 2px 14px rgba(59,91,219,0.08);
   overflow: hidden;
+  transition: all 0.3s;
+  
+  &:hover {
+    box-shadow: 0 4px 18px rgba(59,91,219,0.12);
+  }
 
   .el-card__header {
-    background: linear-gradient(to right, #f0f4ff, #f5f7ff);
-    border-bottom: 2px solid #dde6ff;
-    font-weight: 700;
-    color: #3B5BDB;
-    font-size: 14px;
-    padding: 13px 18px;
+    background: linear-gradient(to right, #f8faff, #fff);
+    border-bottom: 1px solid #eef1fc;
+    padding: 15px 20px;
+  }
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 700;
+  color: #334155;
+  font-size: 15px;
+  
+  .el-icon {
+    margin-right: 8px;
+    font-size: 18px;
+    color: #3B82F6;
+    vertical-align: -2px;
+  }
+  
+  .left {
+    display: flex;
+    align-items: center;
+  }
+}
+
+.header-tag {
+  font-weight: normal;
+  border-radius: 12px;
+  padding: 0 10px;
+}
+
+// ── 表格通用样式 ──────────────────────────────────────
+.custom-table {
+  border-radius: 6px;
+  
+  :deep(th.el-table__cell) {
+    background-color: #F8FAFC;
+    color: #475569;
+    font-weight: 600;
+    height: 32px;
+    padding: 0;
+  }
+
+  :deep(td.el-table__cell) {
+    padding: 0;
+  }
+  
+  :deep(.el-table__body tr:hover > td.el-table__cell) {
+    background-color: #e6f7ff !important;
+    background-image: none !important;
   }
 }
 
 // ── 已选年级高亮行 ────────────────────────────────────
 :deep(.el-table) {
   .current-row > td {
-    background: linear-gradient(135deg, #edf1fb, #e2e8fc) !important;
-    color: #3B5BDB;
-    font-weight: 600;
+    background-color: #eff6ff !important;
+    background-image: none !important;
+    
+    .grade-name {
+      color: #2563EB;
+      font-weight: 700;
+    }
   }
-
-  .el-button[type=primary][icon=Edit]   { color: #3B5BDB !important; }
-  .el-button[type=primary][icon=Delete] { color: #e03131 !important; }
 }
 
-// ── 班级列表卡片标题 extra 文字 ───────────────────────
-.header-extra {
-  color: #3B5BDB;
-  font-size: 12px;
-  margin-left: 8px;
+.grade-name {
   font-weight: 500;
-  background: #edf1fb;
-  padding: 2px 8px;
-  border-radius: 10px;
-  border: 1px solid #c6d4f0;
+  color: #1e293b;
+}
+
+.time-text {
+  color: #64748B;
+  font-size: 12px;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+// ── 操作按钮组 ────────────────────────────────────────
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  
+  .el-button {
+    padding: 4px;
+    height: 24px;
+    width: 24px;
+    border-radius: 4px;
+    font-size: 12px;
+    
+    &:hover {
+      background-color: #F1F5F9;
+    }
+  }
+}
+
+// ── 操作按钮颜色 ──────────────────────────────────────
+:deep(.el-table) {
+  .el-button[type=primary][icon=Edit]   { color: #3B82F6 !important; }
+  .el-button[type=danger][icon=Delete] { color: #EF4444 !important; }
 }
 </style>

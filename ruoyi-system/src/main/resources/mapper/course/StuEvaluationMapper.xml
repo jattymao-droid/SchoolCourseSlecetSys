@@ -36,4 +36,13 @@
         select question_id from stu_evaluation
         where student_id = #{studentId} and course_id = #{courseId} and semester_id = #{semesterId}
     </select>
+
+    <delete id="deleteBySemesterId">
+        delete from stu_evaluation where semester_id = #{semesterId}
+    </delete>
+
+    <delete id="deleteByTeacherAndSemester">
+        delete from stu_evaluation where semester_id = #{semesterId}
+          and course_id in (select id from cou_course where teacher_id = #{teacherId} and del_flag = '0')
+    </delete>
 </mapper>

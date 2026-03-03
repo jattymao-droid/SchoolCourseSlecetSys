@@ -20,6 +20,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="semesterName" column="semester_name"/>
         <result property="quota"       column="quota"       />
         <result property="selected"    column="selected"    />
+        <result property="totalQuota"  column="total_quota" />
+        <result property="selectedCount" column="selected_count" />
     </resultMap>
 
     <sql id="selectCourseVo">
@@ -35,6 +37,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         select c.id, c.course_name, c.week_day, c.grade_id, c.teacher_id, c.description, coalesce(c.location, '') as location, c.semester_id, c.del_flag, c.create_time,
                g.grade_name, coalesce(u.nick_name, c.teacher_name) as teacher_name, s.semester_name
                <if test="classId != null">, q.quota, q.selected</if>
+               , coalesce(quota_sum.total_quota, 0) as total_quota
+               , coalesce(quota_sum.selected_count, 0) as selected_count
         from cou_course c
         left join sys_grade g on c.grade_id = g.id
         left join sys_user u on c.teacher_id = u.user_id
@@ -42,6 +46,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <if test="classId != null">
         left join cou_class_quota q on c.id = q.course_id and q.class_id = #{classId} and q.del_flag = '0'
         </if>
+        left join (
+            select course_id, 
+                   sum(quota) as total_quota, 
+                   sum(selected) as selected_count
+            from cou_class_quota
+            where del_flag = '0'
+            group by course_id
+        ) quota_sum on c.id = quota_sum.course_id
         where c.del_flag = '0'
         <if test="courseName != null and courseName != ''">
             <bind name="courseNamePattern" value="'%' + courseName + '%'" />

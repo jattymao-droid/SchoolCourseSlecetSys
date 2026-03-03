@@ -8,14 +8,13 @@
         :class="{ 'active': isActive(tag), 'has-icon': tagsIcon }"
         :to="{ path: tag.path, query: tag.query, fullPath: tag.fullPath }"
         class="tags-view-item"
-        :style="activeStyle(tag)"
         @click.middle="!isAffix(tag) ? closeSelectedTag(tag) : ''"
         @contextmenu.prevent="openMenu(tag, $event)"
       >
-        <svg-icon v-if="tagsIcon && tag.meta && tag.meta.icon && tag.meta.icon !== '#'" :icon-class="tag.meta.icon" />
+        <svg-icon v-if="tagsIcon && tag.meta && tag.meta.icon && tag.meta.icon !== '#'" :icon-class="tag.meta.icon" class="item-icon" />
         {{ tag.title }}
-        <span v-if="!isAffix(tag)" @click.prevent.stop="closeSelectedTag(tag)">
-          <close class="el-icon-close" style="width: 1em; height: 1em;vertical-align: middle;" />
+        <span v-if="!isAffix(tag)" class="close-icon-wrapper" @click.prevent.stop="closeSelectedTag(tag)">
+          <close class="el-icon-close" />
         </span>
       </router-link>
     </scroll-pane>
@@ -263,48 +262,46 @@ function handleScroll() {
 .tags-view-container {
   height: 34px;
   width: 100%;
-  background: var(--tags-bg, #fff);
-  border-bottom: 1px solid var(--tags-item-border, #d8dce5);
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, .12), 0 0 3px 0 rgba(0, 0, 0, .04);
+  background: #fff;
+  border-bottom: 1px solid #d8dce5;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, .05);
 
   .tags-view-wrapper {
     .tags-view-item {
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
       position: relative;
       cursor: pointer;
-      height: 28px;
-      line-height: 28px;
-      border: 1px solid transparent;
-      border-radius: 6px;
-      color: var(--tags-item-text, #555e8a);
-      background: var(--tags-item-bg, #fff);
-      padding: 0 12px;
+      height: 26px;
+      line-height: 26px;
+      border: 1px solid #d8dce5;
+      color: #495060;
+      background: #fff;
+      padding: 0 8px;
       font-size: 12px;
-      font-weight: 500;
       margin-left: 6px;
-      margin-top: 3px;
-      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-      box-shadow: 0 2px 6px rgba(59, 91, 219, 0.05);
-
+      margin-top: 4px;
+      border-radius: 4px;
+      transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+      
       &:first-of-type {
         margin-left: 15px;
       }
-
       &:last-of-type {
         margin-right: 15px;
       }
-
+      
       &:hover {
-        background: #F8F9FA;
-        color: #0F172A;
+        border-color: #3B5BDB;
+        color: #3B5BDB;
+        background-color: #f8faff;
       }
 
       &.active {
-        background-color: #F3F4F9 !important;
-        border-color: #F3F4F9 !important;
-        color: #0F172A !important;
+        background-color: #e6f7ff !important;
+        color: #3B5BDB !important;
+        border-color: #3B5BDB !important;
         font-weight: 600;
-        box-shadow: none;
 
         &::before {
           content: '';
@@ -315,6 +312,38 @@ function handleScroll() {
           border-radius: 50%;
           position: relative;
           margin-right: 6px;
+        }
+      }
+      
+      .item-icon {
+        margin-right: 4px;
+        font-size: 13px;
+        vertical-align: -1px;
+      }
+      
+      .close-icon-wrapper {
+        display: inline-flex;
+        align-items: center;
+        margin-left: 4px;
+        width: 16px;
+        height: 16px;
+        justify-content: center;
+        border-radius: 50%;
+        transition: all .3s cubic-bezier(.645, .045, .355, 1);
+        
+        &:hover {
+          background-color: #ff4d4f;
+          color: #fff;
+          
+          .el-icon-close {
+            color: #fff;
+          }
+        }
+        
+        .el-icon-close {
+          width: 12px;
+          height: 12px;
+          vertical-align: -1px;
         }
       }
     }
@@ -345,36 +374,6 @@ function handleScroll() {
 
       &:hover {
         background: var(--tags-item-hover, #eee);
-      }
-    }
-  }
-}
-</style>
-
-<style lang="scss">
-//reset element css of el-icon-close
-.tags-view-wrapper {
-  .tags-view-item {
-    .el-icon-close {
-      width: 16px;
-      height: 16px;
-      vertical-align: 2px;
-      border-radius: 50%;
-      text-align: center;
-      transition: all .3s cubic-bezier(.645, .045, .355, 1);
-      transform-origin: 100% 50%;
-
-      &:before {
-        transform: scale(.6);
-        display: inline-block;
-        vertical-align: -3px;
-      }
-
-      &:hover {
-        background-color: var(--tags-close-hover, #b4bccc);
-        color: #fff;
-        width: 12px !important;
-        height: 12px !important;
       }
     }
   }

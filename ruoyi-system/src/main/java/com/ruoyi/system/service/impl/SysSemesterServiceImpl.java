@@ -1,5 +1,7 @@
 package com.ruoyi.system.service.impl;
 
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -64,5 +66,30 @@ public class SysSemesterServiceImpl implements ISysSemesterService
         query.setIsCurrent(1);
         List<SysSemester> list = semesterMapper.selectSemesterList(query);
         return list.isEmpty() ? null : list.get(0);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int startSelection()
+    {
+        SysSemester current = getCurrentSemester();
+        if (current == null) return 0;
+        Date now = new Date();
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(now);
+        cal.add(Calendar.YEAR, 1);
+        current.setSelectionStartTime(now);
+        current.setSelectionEndTime(cal.getTime());
+        return semesterMapper.updateSemester(current);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int endSelection()
+    {
+        SysSemester current = getCurrentSemester();
+        if (current == null) return 0;
+        current.setSelectionEndTime(new Date());
+        return semesterMapper.updateSemester(current);
     }
 }

@@ -93,8 +93,8 @@ public class SelectionController extends BaseController
         }
     }
 
-    /** 退课 */
-    @PreAuthorize("@ss.hasPermi('course:selection:drop')")
+    /** 退课：所有已选课程退回选课车，移除要退选的课程，返回更新后的选课车 */
+    @PreAuthorize("@ss.hasPermi('course:selection:drop') or @ss.hasRole('student')")
     @Log(title = "退课", businessType = BusinessType.DELETE)
     @PostMapping("/drop/{selectionId}")
     public AjaxResult dropCourse(@PathVariable Long selectionId)
@@ -102,8 +102,8 @@ public class SelectionController extends BaseController
         Long studentId = SecurityUtils.getUserId();
         try
         {
-            String msg = selectionService.dropCourse(studentId, selectionId);
-            return success(msg);
+            Map<String, Object> result = selectionService.dropCourse(studentId, selectionId);
+            return success(result);
         }
         catch (Exception e)
         {

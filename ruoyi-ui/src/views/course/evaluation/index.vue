@@ -6,8 +6,8 @@
           <el-option v-for="s in semesterList" :key="s.id" :label="s.semesterName" :value="s.id" />
         </el-select>
       </el-form-item>
-      <el-form-item label="题目内容" prop="content">
-        <el-input v-model="queryParams.content" placeholder="请输入题目内容" clearable style="width: 200px" @keyup.enter="handleQuery" />
+      <el-form-item label="评价内容" prop="content">
+        <el-input v-model="queryParams.content" placeholder="请输入评价内容" clearable style="width: 200px" @keyup.enter="handleQuery" />
       </el-form-item>
       <el-form-item label="状态" prop="status">
         <el-select v-model="queryParams.status" placeholder="请选择" clearable style="width: 120px">
@@ -22,13 +22,13 @@
 
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button type="primary" plain icon="Plus" @click="handleAdd" v-hasPermi="['course:evaluation:add']">新增</el-button>
+        <el-button type="success" plain icon="Plus" @click="handleAdd" v-hasPermi="['course:evaluation:add']">新增</el-button>
       </el-col>
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
     <el-table v-loading="loading" :data="questionList">
-      <el-table-column label="题目内容" align="center" prop="content" min-width="200" show-overflow-tooltip />
+      <el-table-column label="评价内容" align="center" prop="content" min-width="200" show-overflow-tooltip />
       <el-table-column label="分值" align="center" prop="score" width="80" />
       <el-table-column label="排序" align="center" prop="sort" width="80" />
       <el-table-column label="学期" align="center" prop="semesterName" width="140" />
@@ -46,8 +46,8 @@
       </el-table-column>
       <el-table-column label="操作" align="center" width="180" class-name="small-padding fixed-width">
         <template #default="scope">
-          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['course:evaluation:edit']">修改</el-button>
-          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['course:evaluation:remove']">删除</el-button>
+          <el-button link type="warning" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['course:evaluation:edit']">修改</el-button>
+          <el-button link type="danger" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['course:evaluation:remove']">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -61,8 +61,8 @@
             <el-option v-for="s in semesterList" :key="s.id" :label="s.semesterName" :value="s.id" />
           </el-select>
         </el-form-item>
-        <el-form-item label="题目内容" prop="content">
-          <el-input v-model="form.content" type="textarea" :rows="3" placeholder="请输入评价题目内容" />
+        <el-form-item label="评价内容" prop="content">
+          <el-input v-model="form.content" type="textarea" :rows="3" placeholder="请输入评价内容" />
         </el-form-item>
         <el-form-item label="分值" prop="score">
           <el-input-number v-model="form.score" :min="1" :max="100" controls-position="right" style="width: 120px" />
@@ -73,8 +73,8 @@
         </el-form-item>
         <el-form-item label="状态" prop="status">
           <el-radio-group v-model="form.status">
-            <el-radio :label="1">启用</el-radio>
-            <el-radio :label="0">停用</el-radio>
+            <el-radio :value="1">启用</el-radio>
+            <el-radio :value="0">停用</el-radio>
           </el-radio-group>
         </el-form-item>
       </el-form>
@@ -116,7 +116,7 @@ const data = reactive({
   },
   rules: {
     semesterId: [{ required: true, message: '请选择学期', trigger: 'change' }],
-    content: [{ required: true, message: '请输入题目内容', trigger: 'blur' }],
+    content: [{ required: true, message: '请输入评价内容', trigger: 'blur' }],
     score: [{ required: true, message: '请输入分值', trigger: 'blur' }]
   }
 })

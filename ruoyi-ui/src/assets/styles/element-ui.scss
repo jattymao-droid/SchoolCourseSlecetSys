@@ -96,108 +96,521 @@
 }
 
 // ======================================================
-// 选课系统全局主题覆盖 — 靛蓝教育风格
+// 现代化全局主题覆盖 — 靛蓝风格
 // ======================================================
 
-// 主色调：靛蓝
+// 主色调：现代靛蓝
 :root {
-  --el-color-primary: #3B5BDB;
-  --el-color-primary-light-3: #748fd6;
-  --el-color-primary-light-5: #9db3e5;
-  --el-color-primary-light-7: #c6d4f0;
-  --el-color-primary-light-8: #d8e3f8;
-  --el-color-primary-light-9: #edf1fb;
-  --el-color-primary-dark-2: #2f49ae;
+  --el-color-primary: #4F46E5;
+  --el-color-primary-light-3: #818CF8;
+  --el-color-primary-light-5: #A5B4FC;
+  --el-color-primary-light-7: #C7D2FE;
+  --el-color-primary-light-8: #DDD6FE;
+  --el-color-primary-light-9: #EDE9FE;
+  --el-color-primary-dark-2: #4338CA;
 
-  // 选课系统专用颜色变量
-  --cs-bg-page: #f0f4ff;
-  --cs-banner-gradient: linear-gradient(135deg, #3B5BDB 0%, #5C7CFA 60%, #74C0FC 100%);
-  --cs-card-shadow: 0 2px 16px rgba(59, 91, 219, 0.08);
-  --cs-card-hover-shadow: 0 8px 28px rgba(59, 91, 219, 0.16);
-  --cs-success: #2f9e44;
-  --cs-warning: #e67700;
+  // 系统专用颜色变量
+  --cs-bg-page: #F8FAFC;
+  --cs-banner-gradient: linear-gradient(135deg, #4F46E5 0%, #6366F1 60%, #818CF8 100%);
+  --cs-card-shadow: 0 2px 12px rgba(79, 70, 229, 0.08);
+  --cs-card-hover-shadow: 0 8px 24px rgba(79, 70, 229, 0.16);
+  --cs-success: #10B981;
+  --cs-warning: #F59E0B;
+  --cs-danger: #EF4444;
+}
+
+// 按钮：现代化圆角与渐变 - 功能语义化配色
+.el-button {
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  letter-spacing: 0.3px;
+  
+  &:hover {
+    transform: translateY(-2px);
+  }
+  
+  // 主要操作按钮 - 靛蓝色（查看、详情、确认）
+  &.el-button--primary {
+    background: linear-gradient(135deg, #4F46E5 0%, #6366F1 100%);
+    border: none;
+    
+    &:hover {
+      background: linear-gradient(135deg, #4338CA 0%, #4F46E5 100%);
+      box-shadow: 0 6px 16px rgba(79, 70, 229, 0.3);
+    }
+    
+    &:active {
+      transform: translateY(0);
+    }
+  }
+  
+  // 成功/新增按钮 - 翠绿色（新增、创建、保存）
+  &.el-button--success {
+    background: linear-gradient(135deg, #10B981 0%, #34D399 100%);
+    border: none;
+    
+    &:hover {
+      background: linear-gradient(135deg, #059669 0%, #10B981 100%);
+      box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3);
+    }
+  }
+  
+  // 警告/编辑按钮 - 琥珀色（编辑、修改、更新）
+  &.el-button--warning {
+    background: linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%);
+    border: none;
+    
+    &:hover {
+      background: linear-gradient(135deg, #D97706 0%, #F59E0B 100%);
+      box-shadow: 0 6px 16px rgba(245, 158, 11, 0.3);
+    }
+  }
+  
+  // 危险/删除按钮 - 红色（删除、移除、清空）
+  &.el-button--danger {
+    background: linear-gradient(135deg, #EF4444 0%, #F87171 100%);
+    border: none;
+    
+    &:hover {
+      background: linear-gradient(135deg, #DC2626 0%, #EF4444 100%);
+      box-shadow: 0 6px 16px rgba(239, 68, 68, 0.3);
+    }
+  }
+  
+  // 信息/导出按钮 - 蓝色（导出、下载、打印）
+  &.el-button--info {
+    background: linear-gradient(135deg, #3B82F6 0%, #60A5FA 100%);
+    border: none;
+    color: #FFFFFF;
+    
+    &:hover {
+      background: linear-gradient(135deg, #2563EB 0%, #3B82F6 100%);
+      box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
+    }
+  }
+  
+  // 文本按钮 - 白色文字配色
+  &.el-button--text {
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-weight: 600;
+    color: #FFFFFF;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    
+    // 默认文本按钮 - 靛蓝色
+    &:not(.el-button--success):not(.el-button--warning):not(.el-button--danger):not(.el-button--info) {
+      background: linear-gradient(135deg, #4F46E5 0%, #6366F1 100%);
+      
+      &:hover {
+        background: linear-gradient(135deg, #4338CA 0%, #4F46E5 100%);
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+      }
+    }
+    
+    // 成功文本按钮 - 翠绿色
+    &.el-button--success {
+      background: linear-gradient(135deg, #10B981 0%, #34D399 100%);
+      
+      &:hover {
+        background: linear-gradient(135deg, #059669 0%, #10B981 100%);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+      }
+    }
+    
+    // 警告文本按钮 - 琥珀色
+    &.el-button--warning {
+      background: linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%);
+      
+      &:hover {
+        background: linear-gradient(135deg, #D97706 0%, #F59E0B 100%);
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+      }
+    }
+    
+    // 危险文本按钮 - 红色
+    &.el-button--danger {
+      background: linear-gradient(135deg, #EF4444 0%, #F87171 100%);
+      
+      &:hover {
+        background: linear-gradient(135deg, #DC2626 0%, #EF4444 100%);
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+      }
+    }
+    
+    // 信息文本按钮 - 蓝色
+    &.el-button--info {
+      background: linear-gradient(135deg, #3B82F6 0%, #60A5FA 100%);
+      
+      &:hover {
+        background: linear-gradient(135deg, #2563EB 0%, #3B82F6 100%);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+      }
+    }
+  }
+  
+  // 朴素按钮 - 带边框的按钮
+  &.is-plain {
+    background: #FFFFFF;
+    
+    &.el-button--primary {
+      color: #4F46E5;
+      border: 1.5px solid #C7D2FE;
+      
+      &:hover {
+        background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%);
+        border-color: #A5B4FC;
+        color: #4338CA;
+      }
+    }
+    
+    &.el-button--success {
+      color: #10B981;
+      border: 1.5px solid #A7F3D0;
+      
+      &:hover {
+        background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);
+        border-color: #6EE7B7;
+        color: #059669;
+      }
+    }
+    
+    &.el-button--warning {
+      color: #F59E0B;
+      border: 1.5px solid #FDE68A;
+      
+      &:hover {
+        background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+        border-color: #FCD34D;
+        color: #D97706;
+      }
+    }
+    
+    &.el-button--danger {
+      color: #EF4444;
+      border: 1.5px solid #FECACA;
+      
+      &:hover {
+        background: linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%);
+        border-color: #FCA5A5;
+        color: #DC2626;
+      }
+    }
+    
+    &.el-button--info {
+      color: #3B82F6;
+      border: 1.5px solid #BFDBFE;
+      
+      &:hover {
+        background: linear-gradient(135deg, #DBEAFE 0%, #BFDBFE 100%);
+        border-color: #93C5FD;
+        color: #2563EB;
+      }
+    }
+  }
+  
+  // 圆形按钮
+  &.is-circle {
+    padding: 10px;
+    
+    &:hover {
+      transform: translateY(-2px) rotate(5deg);
+    }
+  }
+  
+  // 禁用状态
+  &.is-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    
+    &:hover {
+      transform: none;
+      box-shadow: none;
+    }
+  }
 }
 
 // 表格：更清爽的表头与行分隔
 .el-table {
-  border-radius: 8px;
+  border-radius: 12px;
   overflow: hidden;
+  border: 1px solid #E0E7FF;
 
   th.el-table__cell {
-    background: linear-gradient(to bottom, #f5f7ff, #eef1fc) !important;
-    color: #3B5BDB !important;
+    background: linear-gradient(180deg, #F8FAFC 0%, #F1F5F9 100%) !important;
+    color: #475569 !important;
     font-weight: 600;
     font-size: 13px;
-    border-bottom: 2px solid #d4defc !important;
+    border-bottom: 2px solid #E0E7FF !important;
+    letter-spacing: 0.3px;
   }
 
   tr:hover > td {
-    background-color: #f0f4ff !important;
+    background: linear-gradient(90deg, #F8FAFC 0%, #EEF2FF 100%) !important;
+  }
+  
+  .el-table__body tr {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 
-// 对话框：增加圆角与阴影
+// 对话框：统一风格优化
 .el-dialog {
   border-radius: 12px !important;
-  box-shadow: 0 20px 60px rgba(59, 91, 219, 0.15) !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1), 0 2px 6px rgba(0, 0, 0, 0.04) !important;
   overflow: hidden;
+  border: 1px solid #eef2f6;
 
   .el-dialog__header {
-    background: linear-gradient(135deg, #3B5BDB, #5C7CFA);
+    background: #fff;
     padding: 16px 24px !important;
+    border-bottom: 1px solid #eef2f6;
+    margin-right: 0 !important;
 
     .el-dialog__title {
-      color: #fff !important;
+      color: #1e293b !important;
       font-size: 16px !important;
       font-weight: 600 !important;
+      letter-spacing: 0.3px;
     }
 
-    .el-dialog__headerbtn .el-dialog__close {
-      color: rgba(255,255,255,0.8) !important;
-      &:hover { color: #fff !important; }
+    .el-dialog__headerbtn {
+      top: 16px;
+      
+      .el-dialog__close {
+        color: #94a3b8 !important;
+        font-size: 18px;
+        transition: all 0.2s;
+        
+        &:hover { 
+          color: #ef4444 !important;
+          transform: rotate(90deg);
+        }
+      }
+    }
+  }
+  
+  .el-dialog__body {
+    padding: 24px;
+    color: #334155;
+    font-size: 14px;
+  }
+  
+  .el-dialog__footer {
+    padding: 16px 24px;
+    border-top: 1px solid #eef2f6;
+    background: #f8fafc;
+    text-align: right;
+    
+    .el-button {
+      min-width: 80px;
     }
   }
 }
 
 // 卡片：统一圆角与阴影
 .app-container .el-card {
-  border-radius: 10px;
-  border: 1px solid #dde6ff;
+  border-radius: 12px;
+  border: 1px solid #E0E7FF;
   box-shadow: var(--cs-card-shadow);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover {
+    box-shadow: var(--cs-card-hover-shadow);
+    transform: translateY(-2px);
+  }
 
   .el-card__header {
-    background: #f5f7ff;
-    border-bottom: 1px solid #dde6ff;
-    font-weight: 600;
-    color: #3B5BDB;
-    padding: 14px 20px;
+    background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 100%);
+    border-bottom: 1px solid #E0E7FF;
+    font-weight: 700;
+    color: #1E293B;
+    padding: 18px 24px;
+    font-size: 15px;
+    letter-spacing: 0.3px;
   }
 }
 
 // 分页：主色
-.el-pagination.is-background .el-pager li.is-active {
-  background-color: #3B5BDB !important;
+.el-pagination {
+  .el-pager li {
+    border-radius: 6px;
+    margin: 0 4px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    &.is-active {
+      background: linear-gradient(135deg, #4F46E5 0%, #6366F1 100%) !important;
+      box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
+    }
+    
+    &:hover:not(.is-active) {
+      background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%);
+      color: #4F46E5;
+    }
+  }
+  
+  .btn-prev, .btn-next {
+    border-radius: 6px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    &:hover {
+      background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%);
+      color: #4F46E5;
+    }
+  }
 }
 
 // 标签组
 .el-tabs--border-card {
-  border-radius: 8px;
+  border-radius: 12px;
   overflow: hidden;
-  border-color: #dde6ff;
+  border-color: #E0E7FF;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.06);
 
   > .el-tabs__header {
-    background-color: #f0f4ff;
-    border-bottom: 2px solid #dde6ff;
+    background: linear-gradient(180deg, #F8FAFC 0%, #F1F5F9 100%);
+    border-bottom: 2px solid #E0E7FF;
 
     .el-tabs__item {
-      color: #606890;
+      color: #64748B;
       font-weight: 500;
+      border-radius: 8px 8px 0 0;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      
       &.is-active {
-        color: #3B5BDB;
+        color: #4F46E5;
         background-color: #fff;
         border-bottom-color: transparent;
-        font-weight: 600;
+        font-weight: 700;
+        box-shadow: 0 -2px 8px rgba(79, 70, 229, 0.1);
       }
+      
+      &:hover:not(.is-active) {
+        color: #4F46E5;
+        background: rgba(79, 70, 229, 0.05);
+      }
+    }
+  }
+}
+
+// 输入框
+.el-input__wrapper {
+  border-radius: 8px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &.is-focus {
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+  }
+}
+
+// 下拉选择
+.el-select-dropdown {
+  border-radius: 8px;
+  border: 1px solid #E0E7FF;
+  box-shadow: 0 4px 16px rgba(79, 70, 229, 0.12);
+  
+  .el-select-dropdown__item {
+    border-radius: 6px;
+    margin: 4px 8px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    &.is-selected {
+      background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%);
+      color: #4F46E5;
+      font-weight: 600;
+    }
+    
+    &:hover {
+      background: linear-gradient(135deg, #F8FAFC 0%, #EEF2FF 100%);
+    }
+  }
+}
+
+// 标签
+.el-tag {
+  border-radius: 6px;
+  font-weight: 500;
+  padding: 4px 12px;
+  border: none;
+  
+  &.el-tag--primary {
+    background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%);
+    color: #4F46E5;
+  }
+  
+  &.el-tag--success {
+    background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);
+    color: #059669;
+  }
+  
+  &.el-tag--warning {
+    background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+    color: #D97706;
+  }
+  
+  &.el-tag--danger {
+    background: linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%);
+    color: #DC2626;
+  }
+}
+
+
+// Link 按钮样式优化（Element Plus 新版本）- 白色文字配色
+.el-button.is-link {
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  color: #FFFFFF;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  
+  // Primary link 按钮 - 靛蓝色
+  &.el-button--primary {
+    background: linear-gradient(135deg, #4F46E5 0%, #6366F1 100%);
+    
+    &:hover {
+      background: linear-gradient(135deg, #4338CA 0%, #4F46E5 100%);
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+    }
+  }
+  
+  // Success link 按钮 - 翠绿色
+  &.el-button--success {
+    background: linear-gradient(135deg, #10B981 0%, #34D399 100%);
+    
+    &:hover {
+      background: linear-gradient(135deg, #059669 0%, #10B981 100%);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+  }
+  
+  // Warning link 按钮 - 琥珀色
+  &.el-button--warning {
+    background: linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%);
+    
+    &:hover {
+      background: linear-gradient(135deg, #D97706 0%, #F59E0B 100%);
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+    }
+  }
+  
+  // Danger link 按钮 - 红色
+  &.el-button--danger {
+    background: linear-gradient(135deg, #EF4444 0%, #F87171 100%);
+    
+    &:hover {
+      background: linear-gradient(135deg, #DC2626 0%, #EF4444 100%);
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    }
+  }
+  
+  // Info link 按钮 - 蓝色
+  &.el-button--info {
+    background: linear-gradient(135deg, #3B82F6 0%, #60A5FA 100%);
+    
+    &:hover {
+      background: linear-gradient(135deg, #2563EB 0%, #3B82F6 100%);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
     }
   }
 }

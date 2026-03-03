@@ -15,10 +15,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="createTime"   column="create_time"   />
         <result property="updateBy"     column="update_by"    />
         <result property="updateTime"   column="update_time"  />
+        <result property="selectionStartTime" column="selection_start_time" />
+        <result property="selectionEndTime"   column="selection_end_time"   />
     </resultMap>
 
     <sql id="selectSemesterVo">
-        select id, semester_name, start_date, end_date, is_current, del_flag, create_by, create_time, update_by, update_time
+        select id, semester_name, start_date, end_date, is_current, del_flag, create_by, create_time, update_by, update_time, selection_start_time, selection_end_time
         from sys_semester
     </sql>
 
@@ -45,6 +47,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="startDate != null">start_date,</if>
             <if test="endDate != null">end_date,</if>
             <if test="isCurrent != null">is_current,</if>
+            <if test="selectionStartTime != null">selection_start_time,</if>
+            <if test="selectionEndTime != null">selection_end_time,</if>
             create_by,
             create_time
         ) values (
@@ -52,6 +56,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="startDate != null">#{startDate},</if>
             <if test="endDate != null">#{endDate},</if>
             <if test="isCurrent != null">#{isCurrent},</if>
+            <if test="selectionStartTime != null">#{selectionStartTime},</if>
+            <if test="selectionEndTime != null">#{selectionEndTime},</if>
             #{createBy},
             CURRENT_TIMESTAMP
         )
@@ -64,6 +70,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="startDate != null">start_date = #{startDate},</if>
             <if test="endDate != null">end_date = #{endDate},</if>
             <if test="isCurrent != null">is_current = #{isCurrent},</if>
+            <if test="selectionStartTime != null">selection_start_time = #{selectionStartTime},</if>
+            <if test="selectionEndTime != null">selection_end_time = #{selectionEndTime},</if>
             <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
             update_time = CURRENT_TIMESTAMP
         </set>

@@ -32,4 +32,22 @@ public interface ICourseService
      * @return 成功指定的人数
      */
     int assignStudents(Long courseId, List<Long> studentIds);
+
+    /**
+     * 导入课程数据
+     *
+     * @param courseList 课程数据列表
+     * @param isUpdateSupport 是否更新支持，如果已存在，则进行更新数据
+     * @param operName 操作用户
+     * @return 结果
+     */
+    String importCourse(List<CouCourse> courseList, Boolean isUpdateSupport, String operName);
+
+    /**
+     * 初始化指定学期的选课数据：清空所有选课记录，重置班级容量已选人数为0
+     *
+     * @param semesterId 学期ID
+     * @return 删除的选课记录数
+     */
+    int initSelectionData(Long semesterId);
 }

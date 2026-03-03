@@ -11,27 +11,6 @@
     <div class="right-menu">
       <template v-if="appStore.device !== 'mobile'">
         <header-search id="header-search" class="right-menu-item" />
-
-        <el-tooltip content="源码地址" effect="dark" placement="bottom">
-          <ruo-yi-git id="ruoyi-git" class="right-menu-item hover-effect" />
-        </el-tooltip>
-
-        <el-tooltip content="文档地址" effect="dark" placement="bottom">
-          <ruo-yi-doc id="ruoyi-doc" class="right-menu-item hover-effect" />
-        </el-tooltip>
-
-        <screenfull id="screenfull" class="right-menu-item hover-effect" />
-
-        <el-tooltip content="主题模式" effect="dark" placement="bottom">
-          <div class="right-menu-item hover-effect theme-switch-wrapper" @click="toggleTheme">
-            <svg-icon v-if="settingsStore.isDark" icon-class="sunny" />
-            <svg-icon v-if="!settingsStore.isDark" icon-class="moon" />
-          </div>
-        </el-tooltip>
-
-        <el-tooltip content="布局大小" effect="dark" placement="bottom">
-          <size-select id="size-select" class="right-menu-item hover-effect" />
-        </el-tooltip>
       </template>
 
       <el-dropdown @command="handleCommand" class="avatar-container right-menu-item hover-effect" trigger="hover">
@@ -64,11 +43,7 @@ import TopNav from '@/components/TopNav'
 import TopBar from './TopBar'
 import Logo from './Sidebar/Logo'
 import Hamburger from '@/components/Hamburger'
-import Screenfull from '@/components/Screenfull'
-import SizeSelect from '@/components/SizeSelect'
 import HeaderSearch from '@/components/HeaderSearch'
-import RuoYiGit from '@/components/RuoYi/Git'
-import RuoYiDoc from '@/components/RuoYi/Doc'
 import useAppStore from '@/store/modules/app'
 import useUserStore from '@/store/modules/user'
 import useSettingsStore from '@/store/modules/settings'
@@ -160,29 +135,34 @@ async function toggleTheme(event) {
 }
 
 .navbar {
-  height: 54px;
+  height: 60px;
   overflow: hidden;
   position: relative;
-  background: #ffffff;
-  border-bottom: 1px solid #F0F2F5;
+  background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 100%);
+  border-bottom: 1px solid rgba(79, 70, 229, 0.08);
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.06);
   display: flex;
   align-items: center;
   box-sizing: border-box;
+  backdrop-filter: blur(10px);
 
   .hamburger-container {
-    line-height: 54px;
+    line-height: 60px;
     height: 100%;
     cursor: pointer;
-    transition: background 0.3s;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     -webkit-tap-highlight-color: transparent;
     display: flex;
     align-items: center;
     flex-shrink: 0;
     margin-right: 12px;
-    padding: 0 12px;
+    padding: 0 16px;
+    border-radius: 8px;
 
     &:hover {
-      background: rgba(59, 91, 219, 0.05);
+      background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
     }
   }
 
@@ -211,10 +191,11 @@ async function toggleTheme(event) {
 
   .right-menu {
     height: 100%;
-    line-height: 54px;
+    line-height: 60px;
     display: flex;
     align-items: center;
     margin-left: auto;
+    padding-right: 16px;
 
     &:focus {
       outline: none;
@@ -222,21 +203,25 @@ async function toggleTheme(event) {
 
     .right-menu-item {
       display: inline-block;
-      padding: 0 12px;
-      height: 100%;
+      padding: 0 14px;
+      height: 40px;
       font-size: 18px;
-      color: #555e8a;
+      color: #64748B;
       vertical-align: text-bottom;
       display: flex;
       align-items: center;
+      border-radius: 8px;
+      margin: 0 4px;
 
       &.hover-effect {
         cursor: pointer;
-        transition: all 0.3s;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
         &:hover {
-          background: rgba(59, 91, 219, 0.04);
-          color: #3B5BDB;
+          background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%);
+          color: #4F46E5;
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
         }
       }
 
@@ -245,18 +230,27 @@ async function toggleTheme(event) {
         align-items: center;
 
         svg {
-          transition: transform 0.3s;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           
           &:hover {
-            transform: scale(1.15) rotate(15deg);
+            transform: scale(1.2) rotate(20deg);
+            filter: drop-shadow(0 2px 4px rgba(79, 70, 229, 0.3));
           }
         }
       }
     }
 
     .avatar-container {
-      margin-right: 10px;
-      padding-right: 0px;
+      margin-right: 0;
+      padding: 8px 16px;
+      border-radius: 12px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+      &:hover {
+        background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+      }
 
       .avatar-wrapper {
         display: flex;
@@ -268,25 +262,35 @@ async function toggleTheme(event) {
 
         .user-avatar {
           cursor: pointer;
-          width: 32px;
-          height: 32px;
-          margin-right: 10px;
+          width: 36px;
+          height: 36px;
+          margin-right: 12px;
           border-radius: 50%;
-          border: 1px solid #c6d4f0;
-          box-shadow: 0 2px 8px rgba(59,91,219,0.15);
+          border: 2px solid #E0E7FF;
+          box-shadow: 0 2px 8px rgba(79, 70, 229, 0.2);
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+          &:hover {
+            transform: scale(1.1);
+            border-color: #4F46E5;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+          }
         }
 
-        .user-nickname{
+        .user-nickname {
           font-size: 14px;
           font-weight: 600;
-          color: #3B5BDB;
+          background: linear-gradient(135deg, #4F46E5 0%, #6366F1 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
         }
 
         i {
           cursor: pointer;
           margin-left: 6px;
           font-size: 14px;
-          color: #748fd6;
+          color: #6366F1;
         }
       }
     }

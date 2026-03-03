@@ -30,6 +30,9 @@ public class StuSelection
     /** 状态 1正常 0退课删除 */
     private Integer status;
 
+    /** 1管理员指定 0学生自选 */
+    private Integer assigned;
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public Long getStudentId() { return studentId; }
@@ -44,4 +47,6 @@ public class StuSelection
     public void setClassId(Long classId) { this.classId = classId; }
     public Integer getStatus() { return status; }
     public void setStatus(Integer status) { this.status = status; }
+    public Integer getAssigned() { return assigned; }
+    public void setAssigned(Integer assigned) { this.assigned = assigned; }
 }

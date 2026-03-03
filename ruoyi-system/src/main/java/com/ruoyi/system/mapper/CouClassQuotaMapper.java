@@ -33,4 +33,7 @@ public interface CouClassQuotaMapper
 
     /** 班级已选人数 -1（退课时回退） */
     int decrementSelected(@Param("courseId") Long courseId, @Param("classId") Long classId);
+
+    /** 将指定学期下所有课程的班级容量 selected 重置为 0 */
+    int resetSelectedBySemesterId(@Param("semesterId") Long semesterId);
 }

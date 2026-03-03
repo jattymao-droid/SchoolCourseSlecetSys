@@ -45,15 +45,18 @@
   font-size: 14px;
   color: #fff;
   padding: 14px 36px;
-  border-radius: 8px;
+  border-radius: 12px;
   border: none;
   outline: none;
-  transition: 600ms ease all;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   display: inline-block;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
 
   &:hover {
     background: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3);
 
     &:before,
     &:after {
@@ -95,5 +98,11 @@
   margin: 0;
   padding: 10px 15px;
   font-size: 14px;
-  border-radius: 4px;
+  border-radius: 8px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
 }

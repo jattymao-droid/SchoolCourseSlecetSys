@@ -43,4 +43,7 @@ public interface StuSelectionMapper
 
     /** 按星期统计选课分布（week_day, cnt） */
     List<Map<String, Object>> selectCountByWeekday(@Param("semesterId") Long semesterId);
+
+    /** 删除指定学期的所有选课记录（物理删除） */
+    int deleteBySemesterId(@Param("semesterId") Long semesterId);
 }

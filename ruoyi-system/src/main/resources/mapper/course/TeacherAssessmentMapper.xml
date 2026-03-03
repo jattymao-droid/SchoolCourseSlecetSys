@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.TeacherAssessmentMapper">
+
+    <resultMap type="com.ruoyi.system.domain.TeacherAssessmentVO" id="TeacherAssessmentResult">
+        <result property="teacherId"    column="teacher_id"    />
+        <result property="teacherName"  column="teacher_name"  />
+        <result property="semesterId"  column="semester_id"   />
+        <result property="semesterName" column="semester_name" />
+        <result property="avgScore"     column="avg_score"     />
+        <result property="evalCount"   column="eval_count"    />
+        <result property="courseCount"  column="course_count"  />
+    </resultMap>
+
+    <resultMap type="com.ruoyi.system.domain.TeacherEvaluationDetailVO" id="TeacherEvaluationDetailResult">
+        <result property="studentName"    column="student_name"    />
+        <result property="studentNo"      column="student_no"      />
+        <result property="className"      column="class_name"     />
+        <result property="courseName"     column="course_name"     />
+        <result property="questionContent" column="question_content" />
+        <result property="maxScore"       column="max_score"       />
+        <result property="score"          column="score"           />
+        <result property="createTime"     column="create_time"    />
+    </resultMap>
+
+    <select id="selectTeacherAssessmentList" resultMap="TeacherAssessmentResult">
+        select c.teacher_id,
+               coalesce(u.nick_name, c.teacher_name, '未指定') as teacher_name,
+               c.semester_id,
+               s.semester_name,
+               round(avg(e.score)::numeric, 2) as avg_score,
+               count(*)::int as eval_count,
+               count(distinct e.course_id)::int as course_count
+        from stu_evaluation e
+        join cou_course c on e.course_id = c.id and c.del_flag = '0'
+        left join sys_user u on c.teacher_id = u.user_id
+        left join sys_semester s on c.semester_id = s.id
+        where (#{semesterId} is null or e.semester_id = #{semesterId})
+        group by c.teacher_id, coalesce(u.nick_name, c.teacher_name, '未指定'),
+                 c.semester_id, s.semester_name
+        order by avg_score desc nulls last
+    </select>
+
+    <select id="selectTeacherEvaluationDetails" resultMap="TeacherEvaluationDetailResult">
+        select i.real_name as student_name,
+               u.user_name as student_no,
+               cl.class_name,
+               c.course_name,
+               q.content as question_content,
+               q.score as max_score,
+               e.score,
+               e.create_time
+        from stu_evaluation e
+        join cou_course c on e.course_id = c.id and c.del_flag = '0'
+        left join sys_user u_tea on c.teacher_id = u_tea.user_id
+        join eva_question q on e.question_id = q.id
+        join stu_student_info i on e.student_id = i.user_id and i.del_flag = '0'
+        join sys_user u on i.user_id = u.user_id
+        left join sys_class cl on i.class_id = cl.id
+        where e.semester_id = #{semesterId}
+        <choose>
+            <when test="teacherId != null and teacherId > 0">
+                and c.teacher_id = #{teacherId}
+            </when>
+            <when test="teacherName != null and teacherName != ''">
+                and coalesce(u_tea.nick_name, c.teacher_name) = #{teacherName}
+            </when>
+            <otherwise>and 1=0</otherwise>
+        </choose>
+        order by i.real_name, c.course_name, q.sort nulls last, q.id, e.create_time
+    </select>
+</mapper>

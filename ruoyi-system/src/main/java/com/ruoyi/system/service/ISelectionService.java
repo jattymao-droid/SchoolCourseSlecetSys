@@ -32,6 +32,15 @@ public interface ISelectionService
     String addToCart(Long studentId, Long semesterId, Long courseId);
 
     /**
+     * 管理员指定：将课程加入学生选课车（不校验选课时间窗，标记为不可删除）
+     *
+     * @param studentId 学生ID
+     * @param semesterId 学期ID
+     * @param courseId 课程ID
+     */
+    void addToCartAssigned(Long studentId, Long semesterId, Long courseId);
+
+    /**
      * 从选课车移除
      *
      * @param studentId 学生ID
@@ -58,13 +67,13 @@ public interface ISelectionService
     String submitSelection(Long studentId, Long semesterId);
 
     /**
-     * 退课
+     * 退课：所有已选课程退回选课车，移除要退选的课程
      *
      * @param studentId 学生ID
      * @param selectionId 选课记录ID
-     * @return 成功提示
+     * @return Map 含 msg(提示)、cart(更新后的选课车 weekDay->CartItemVO)
      */
-    String dropCourse(Long studentId, Long selectionId);
+    Map<String, Object> dropCourse(Long studentId, Long selectionId);
 
     /**
      * 查询我的选课列表

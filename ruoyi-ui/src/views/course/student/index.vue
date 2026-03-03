@@ -25,32 +25,65 @@
 
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button type="primary" plain icon="Plus" @click="handleAdd" v-hasPermi="['course:student:add']">新增</el-button>
+        <el-button type="success" plain icon="Plus" @click="handleAdd" v-hasPermi="['course:student:add']">新增</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button type="info" plain icon="Upload" @click="handleImport" v-hasPermi="['course:student:import']">导入</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button type="warning" plain icon="Download" @click="handleExport" v-hasPermi="['course:student:export']">导出</el-button>
+        <el-button type="info" plain icon="Download" @click="handleExport" v-hasPermi="['course:student:export']">导出</el-button>
       </el-col>
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="studentList">
-      <el-table-column label="学号" align="center" prop="studentNo" width="120" />
-      <el-table-column label="姓名" align="center" prop="realName" width="100" />
-      <el-table-column label="年级" align="center" prop="gradeName" width="100" />
-      <el-table-column label="班级" align="center" prop="className" width="100" />
-      <el-table-column label="创建时间" align="center" prop="createTime" width="180">
+    <el-table v-loading="loading" :data="studentList" border stripe class="student-table">
+      <el-table-column label="学号" align="center" prop="studentNo" min-width="140">
         <template #default="scope">
-          <span>{{ parseTime(scope.row.createTime) }}</span>
+          <div class="student-no-cell">
+            <el-icon><IdCard /></el-icon>
+            <span>{{ scope.row.studentNo }}</span>
+          </div>
+        </template>
+      </el-table-column>
+      <el-table-column label="姓名" align="center" prop="realName" min-width="120">
+        <template #default="scope">
+          <div class="student-name-cell">
+            <el-avatar :size="24" :style="{ backgroundColor: getAvatarColor(scope.row.realName) }">{{ scope.row.realName.charAt(0) }}</el-avatar>
+            <span>{{ scope.row.realName }}</span>
+          </div>
+        </template>
+      </el-table-column>
+      <el-table-column label="年级" align="center" prop="gradeName" min-width="120">
+        <template #default="scope">
+          <el-tag effect="plain" type="info">{{ scope.row.gradeName }}</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column label="班级" align="center" prop="className" min-width="140">
+        <template #default="scope">
+           <el-tag effect="light">{{ scope.row.className }}</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column label="创建时间" align="center" prop="createTime" min-width="180">
+        <template #default="scope">
+          <div class="time-cell">
+            <el-icon><Clock /></el-icon>
+            <span>{{ parseTime(scope.row.createTime) }}</span>
+          </div>
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" width="200" class-name="small-padding fixed-width">
         <template #default="scope">
-          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['course:student:edit']">修改</el-button>
-          <el-button link type="primary" icon="Key" @click="handleResetPwd(scope.row)" v-hasPermi="['course:student:edit']">重置密码</el-button>
-          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['course:student:remove']">删除</el-button>
+          <div class="action-buttons">
+            <el-tooltip content="修改" placement="top">
+              <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['course:student:edit']"></el-button>
+            </el-tooltip>
+            <el-tooltip content="重置密码" placement="top">
+              <el-button link type="warning" icon="Key" @click="handleResetPwd(scope.row)" v-hasPermi="['course:student:edit']"></el-button>
+            </el-tooltip>
+            <el-tooltip content="删除" placement="top">
+              <el-button link type="danger" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['course:student:remove']"></el-button>
+            </el-tooltip>
+          </div>
         </template>
       </el-table-column>
     </el-table>
@@ -356,6 +389,17 @@ function submitFileForm() {
   proxy.$refs["uploadRef"].submit()
 }
 
+function getAvatarColor(name) {
+  const colors = ['#409EFF', '#67C23A', '#E6A23C', '#F56C6C', '#909399', '#3B82F6', '#8B5CF6', '#EC4899']
+  let hash = 0
+  if (name) {
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash)
+    }
+  }
+  return colors[Math.abs(hash) % colors.length]
+}
+
 function handleExport() {
   proxy.download("course/student/export", {
     ...queryParams.value
@@ -383,21 +427,112 @@ getList()
   border-radius: 8px;
   border: 1px solid #eef1fc;
   margin-bottom: 14px;
+  
+  .el-button {
+    height: 34px;
+    padding: 0 16px;
+    font-size: 13px;
+    font-weight: 500;
+  }
 }
 
 // ── 表格样式增强 ──────────────────────────────────────
-:deep(.el-table) {
-  // 学号列 - tag 效果由模板控制，此处美化辅助
-  td:first-child .cell {
-    font-family: 'Courier New', monospace;
+.student-table {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+
+  :deep(th.el-table__cell) {
+    background-color: #F8FAFC;
+    color: #475569;
     font-weight: 600;
-    color: #3B5BDB;
+    height: 32px;
+    padding: 0;
   }
 
-  // 操作按钮色彩
-  .el-button[icon=Edit]   { color: #3B5BDB !important; }
-  .el-button[icon=Key]    { color: #7950f2 !important; }
-  .el-button[icon=Delete] { color: #e03131 !important; }
+  :deep(td.el-table__cell) {
+    padding: 0;
+  }
+  
+  :deep(.el-table__body tr:hover > td.el-table__cell) {
+    background-color: #e6f7ff !important;
+    background-image: none !important;
+  }
+}
+
+// ── 学号列样式 ────────────────────────────────────────
+.student-no-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  color: #3B5BDB;
+  font-size: 13px;
+  
+  .el-icon {
+    font-size: 14px;
+    color: #94A3B8;
+  }
+}
+
+// ── 姓名列样式 ────────────────────────────────────────
+.student-name-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 13px;
+  
+  .el-avatar {
+    width: 20px !important;
+    height: 20px !important;
+    line-height: 20px !important;
+    font-size: 11px;
+    color: #fff;
+  }
+}
+
+// ── 时间列样式 ────────────────────────────────────────
+.time-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: #64748B;
+  font-size: 12px;
+  
+  .el-icon {
+    font-size: 13px;
+    color: #94A3B8;
+  }
+}
+
+// ── 操作按钮组 ────────────────────────────────────────
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  
+  .el-button {
+    padding: 4px;
+    height: 24px;
+    width: 24px;
+    border-radius: 4px;
+    font-size: 12px;
+    
+    &:hover {
+      background-color: #F1F5F9;
+    }
+  }
+}
+
+// ── 操作按钮颜色加强（保留原定义，微调） ────────────────
+:deep(.el-table) {
+  .el-button[type=primary][icon=Edit]    { color: #3B82F6; }
+  .el-button[type=warning][icon=Key]    { color: #F59E0B; }
+  .el-button[type=danger][icon=Delete]  { color: #EF4444; }
 }
 
 // ── 导入提示文字 ──────────────────────────────────────

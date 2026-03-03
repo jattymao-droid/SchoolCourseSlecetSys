@@ -147,7 +147,7 @@
 - [x] **5.1.3** 实现选课车接口：获取、加入、移除、清空
 - [x] **5.1.4** 实现提交选课：校验选课车周一至周五齐全、校验名额、事务插入 stu_selection、更新 cou_class_quota.selected、清空选课车
 - [x] **5.1.5** 实现并发控制：`UPDATE cou_class_quota SET selected = selected + 1 WHERE ... AND selected < quota`
-- [x] **5.1.6** 实现退课接口：删除/逻辑删除选课记录、回退 selected、将课程放回选课车（可选）
+- [x] **5.1.6** 实现退课接口：删除/逻辑删除选课记录、回退 selected、将课程放回选课车（已实现：退课时先放回选课车再移出选课记录）
 - [x] **5.1.7** 实现查询剩余名额接口、我的选课列表接口
 - [x] **5.1.8** 选课提交防重复：Redis 令牌或分布式锁
 
@@ -224,6 +224,9 @@
 |------|----------|----------|
 | 后端启动失败，报 `ClassNotFoundException: SysClass` | ruoyi-common 未正确编译/安装 | 在 IntelliJ 中执行 **Build → Rebuild Project**；或关闭所有 Java 进程后执行 `mvn clean install -DskipTests` |
 | 后端能启动，但接口返回 500 | **数据库表缺失**（最常见） | 在 PostgreSQL 中依次执行 `sql/course_selection_init.sql` 和 `sql/course_grade_class_menu.sql`，确认 `sys_grade` 表已创建 |
+| 课程评价菜单不显示 | **评价菜单未初始化** | 执行 `sql/course_evaluation_menu.sql`（依赖 course_selection_menu.sql），执行后重新登录 |
+| 教师考核页面空白 | **教师考核菜单未初始化** | 执行 `sql/course_teacher_assessment_menu.sql`，执行后**退出并重新登录** |
+| 教师考核页面空白 | loadView 组件解析失败 | 已在前端 `permission.js` 增加 `course/teacherAssessment/index` 显式兜底，刷新页面即可 |
 | 同上 | 权限不足 | 确认当前用户角色有 `course:grade:list` 权限，或使用超级管理员（admin）登录 |
 | 同上 | 其他异常 | 查看后端控制台或 `logs/` 目录下的异常堆栈；前端 ElMessage 会显示具体错误信息 |
 

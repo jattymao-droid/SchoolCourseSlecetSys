@@ -32,6 +32,9 @@ public class CartItemVO implements Serializable
     /** 学期ID */
     private Long semesterId;
 
+    /** 是否管理员指定（不可删除） */
+    private Boolean assigned;
+
     public Long getCourseId() { return courseId; }
     public void setCourseId(Long courseId) { this.courseId = courseId; }
     public String getCourseName() { return courseName; }
@@ -46,4 +49,6 @@ public class CartItemVO implements Serializable
     public void setTeacherName(String teacherName) { this.teacherName = teacherName; }
     public Long getSemesterId() { return semesterId; }
     public void setSemesterId(Long semesterId) { this.semesterId = semesterId; }
+    public Boolean getAssigned() { return assigned; }
+    public void setAssigned(Boolean assigned) { this.assigned = assigned; }
 }

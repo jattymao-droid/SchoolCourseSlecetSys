@@ -26,27 +26,27 @@ public class CouCourse extends BaseEntity
     private Integer weekDay;
 
     /** 年级ID */
-    @Excel(name = "年级ID")
     private Long gradeId;
 
     /** 教师ID */
-    @Excel(name = "教师ID")
     private Long teacherId;
 
     /** 课程描述 */
+    @Excel(name = "课程描述")
     private String description;
 
     /** 学期ID */
-    @Excel(name = "学期ID")
     private Long semesterId;
 
     /** 删除标志 */
     private String delFlag;
 
     /** 年级名称（关联查询） */
+    @Excel(name = "年级名称")
     private String gradeName;
 
     /** 教师姓名（关联查询） */
+    @Excel(name = "教师姓名")
     private String teacherName;
 
     /** 上课地点 */
@@ -55,6 +55,7 @@ public class CouCourse extends BaseEntity
     private String location;
 
     /** 学期名称（关联查询） */
+    @Excel(name = "学期名称")
     private String semesterName;
 
     /** 班级容量列表（编辑时加载，保存时写入） */
@@ -68,6 +69,12 @@ public class CouCourse extends BaseEntity
 
     /** 已选人数（选课列表用，来自 cou_class_quota.selected） */
     private Integer selected;
+
+    /** 总容量（所有班级容量之和） */
+    private Integer totalQuota;
+
+    /** 总已选人数（所有班级已选人数之和） */
+    private Integer selectedCount;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -101,4 +108,8 @@ public class CouCourse extends BaseEntity
     public void setQuota(Integer quota) { this.quota = quota; }
     public Integer getSelected() { return selected; }
     public void setSelected(Integer selected) { this.selected = selected; }
+    public Integer getTotalQuota() { return totalQuota; }
+    public void setTotalQuota(Integer totalQuota) { this.totalQuota = totalQuota; }
+    public Integer getSelectedCount() { return selectedCount; }
+    public void setSelectedCount(Integer selectedCount) { this.selectedCount = selectedCount; }
 }

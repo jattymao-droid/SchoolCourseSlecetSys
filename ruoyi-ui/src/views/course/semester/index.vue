@@ -25,7 +25,7 @@
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
         <el-button
-          type="primary"
+          type="success"
           plain
           icon="Plus"
           @click="handleAdd"
@@ -35,41 +35,75 @@
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="semesterList">
-      <el-table-column label="学期名称" align="center" prop="semesterName" />
+    <el-table v-loading="loading" :data="semesterList" border stripe class="semester-table">
+      <el-table-column label="学期名称" align="center" prop="semesterName" min-width="180">
+        <template #default="scope">
+          <div class="semester-name-cell">
+            <el-icon><Calendar /></el-icon>
+            <span>{{ scope.row.semesterName }}</span>
+          </div>
+        </template>
+      </el-table-column>
       <el-table-column label="开始日期" align="center" prop="startDate" width="120">
         <template #default="scope">
-          <span>{{ scope.row.startDate || '-' }}</span>
+          <div class="date-cell">
+            <span>{{ scope.row.startDate || '-' }}</span>
+          </div>
         </template>
       </el-table-column>
       <el-table-column label="结束日期" align="center" prop="endDate" width="120">
         <template #default="scope">
-          <span>{{ scope.row.endDate || '-' }}</span>
+          <div class="date-cell">
+            <span>{{ scope.row.endDate || '-' }}</span>
+          </div>
+        </template>
+      </el-table-column>
+      <el-table-column label="选课开始时间" align="center" prop="selectionStartTime" width="160">
+        <template #default="scope">
+          <div class="time-cell">
+             <span>{{ parseTime(scope.row.selectionStartTime) }}</span>
+          </div>
+        </template>
+      </el-table-column>
+      <el-table-column label="选课结束时间" align="center" prop="selectionEndTime" width="160">
+        <template #default="scope">
+          <div class="time-cell">
+             <span>{{ parseTime(scope.row.selectionEndTime) }}</span>
+          </div>
         </template>
       </el-table-column>
       <el-table-column label="是否当前" align="center" prop="isCurrent" width="100">
         <template #default="scope">
-          <el-tag v-if="scope.row.isCurrent === 1" type="success">当前学期</el-tag>
-          <el-tag v-else type="info">否</el-tag>
+          <el-tag v-if="scope.row.isCurrent === 1" type="success" effect="dark">当前学期</el-tag>
+          <el-tag v-else type="info" effect="plain">否</el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="创建时间" align="center" prop="createTime" width="180">
+      <el-table-column label="创建时间" align="center" prop="createTime" width="160">
         <template #default="scope">
-          <span>{{ parseTime(scope.row.createTime) }}</span>
+          <div class="time-cell">
+             <span>{{ parseTime(scope.row.createTime) }}</span>
+          </div>
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" width="220" class-name="small-padding fixed-width">
         <template #default="scope">
-          <el-button
-            v-if="scope.row.isCurrent !== 1"
-            link
-            type="success"
-            icon="Check"
-            @click="handleSetCurrent(scope.row)"
-            v-hasPermi="['course:semester:edit']"
-          >设为当前</el-button>
-          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['course:semester:edit']">修改</el-button>
-          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['course:semester:remove']">删除</el-button>
+          <div class="action-buttons">
+            <el-tooltip v-if="scope.row.isCurrent !== 1" content="设为当前" placement="top">
+              <el-button
+                link
+                type="success"
+                icon="Check"
+                @click="handleSetCurrent(scope.row)"
+                v-hasPermi="['course:semester:edit']"
+              ></el-button>
+            </el-tooltip>
+            <el-tooltip content="修改" placement="top">
+              <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['course:semester:edit']"></el-button>
+            </el-tooltip>
+            <el-tooltip content="删除" placement="top">
+              <el-button link type="danger" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['course:semester:remove']"></el-button>
+            </el-tooltip>
+          </div>
         </template>
       </el-table-column>
     </el-table>
@@ -103,6 +137,24 @@
             type="date"
             value-format="YYYY-MM-DD"
             placeholder="选择结束日期"
+            style="width: 100%"
+          />
+        </el-form-item>
+        <el-form-item label="选课开始时间" prop="selectionStartTime">
+          <el-date-picker
+            v-model="form.selectionStartTime"
+            type="datetime"
+            value-format="YYYY-MM-DD HH:mm:ss"
+            placeholder="选择选课开始时间"
+            style="width: 100%"
+          />
+        </el-form-item>
+        <el-form-item label="选课结束时间" prop="selectionEndTime">
+          <el-date-picker
+            v-model="form.selectionEndTime"
+            type="datetime"
+            value-format="YYYY-MM-DD HH:mm:ss"
+            placeholder="选择选课结束时间"
             style="width: 100%"
           />
         </el-form-item>
@@ -167,6 +219,8 @@ function reset() {
     semesterName: undefined,
     startDate: undefined,
     endDate: undefined,
+    selectionStartTime: undefined,
+    selectionEndTime: undefined,
     isCurrent: 0
   }
   proxy.resetForm("semesterRef")
@@ -263,36 +317,92 @@ getList()
   border-radius: 8px;
   border: 1px solid #eef1fc;
   margin-bottom: 14px;
+  
+  .el-button {
+    height: 34px;
+    padding: 0 16px;
+    font-size: 13px;
+    font-weight: 500;
+  }
 }
 
-// ── 当前学期行高亮 ────────────────────────────────────
-:deep(.el-table) {
-  // 表格内"当前学期" tag 特殊样式
-  .el-tag--success {
-    background: linear-gradient(135deg, #ebfbee, #d3f9d8);
-    border-color: #8ce99a;
-    color: #2f9e44;
-    font-weight: 700;
-    padding: 2px 10px;
-    border-radius: 20px;
+// ── 表格样式美化 ──────────────────────────────────────
+.semester-table {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+
+  :deep(th.el-table__cell) {
+    background-color: #F8FAFC;
+    color: #475569;
+    font-weight: 600;
+    height: 32px;
+    padding: 0;
   }
 
-  .el-tag--info {
-    background: #f3f4f8;
-    border-color: #dee2ef;
-    color: #909399;
-    border-radius: 20px;
+  :deep(td.el-table__cell) {
+    padding: 0;
   }
-
-  // 设为当前 / 修改 / 删除 按钮色
-  .el-button[type=success] { color: #2f9e44 !important; }
-  .el-button[type=primary][icon=Edit]   { color: #3B5BDB !important; }
-  .el-button[type=primary][icon=Delete] { color: #e03131 !important; }
+  
+  :deep(.el-table__body tr:hover > td.el-table__cell) {
+    background-color: #e6f7ff !important;
+    background-image: none !important;
+  }
 }
 
-// ── 学期名显示增强 ────────────────────────────────────
-.semester-name-col {
+// ── 学期名称列样式 ────────────────────────────────────
+.semester-name-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   font-weight: 600;
   color: #1e2a5e;
+  font-size: 13px;
+  
+  .el-icon {
+    font-size: 14px;
+    color: #3B82F6;
+  }
+}
+
+// ── 日期列样式 ────────────────────────────────────────
+.date-cell {
+  color: #64748B;
+  font-family: 'Segoe UI', sans-serif;
+  font-size: 13px;
+}
+
+// ── 时间列样式 ────────────────────────────────────────
+.time-cell {
+  color: #64748B;
+  font-size: 12px;
+}
+
+// ── 操作按钮组 ────────────────────────────────────────
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  
+  .el-button {
+    padding: 4px;
+    height: 24px;
+    width: 24px;
+    border-radius: 4px;
+    font-size: 12px;
+    
+    &:hover {
+      background-color: #F1F5F9;
+    }
+  }
+}
+
+// ── 当前学期行高亮与按钮色 ────────────────────────────
+:deep(.el-table) {
+  // 设为当前 / 修改 / 删除 按钮色
+  .el-button[type=success][icon=Check] { color: #10B981 !important; }
+  .el-button[type=primary][icon=Edit]   { color: #3B82F6 !important; }
+  .el-button[type=danger][icon=Delete] { color: #EF4444 !important; }
 }
 </style>

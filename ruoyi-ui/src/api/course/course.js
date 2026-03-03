@@ -67,3 +67,12 @@ export function assignStudents(courseId, studentIds) {
     data: { studentIds }
   })
 }
+
+// 初始化选课数据（清空本学期选课记录）
+export function initSelectionData(semesterId) {
+  return request({
+    url: '/course/course/initSelectionData',
+    method: 'post',
+    params: { semesterId }
+  })
+}

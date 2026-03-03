@@ -1,0 +1,45 @@
+{
+  "pages": [
+    { "path": "pages/home/index", "style": { "navigationBarTitleText": "东陆选课", "navigationBarBackgroundColor": "#ffffff", "navigationBarTextStyle": "black" } },
+    { "path": "pages/course/list", "style": { "navigationBarTitleText": "课程", "navigationBarBackgroundColor": "#ffffff", "navigationBarTextStyle": "black" } },
+    { "path": "pages/cart/index", "style": { "navigationBarTitleText": "选课车", "navigationBarBackgroundColor": "#ffffff", "navigationBarTextStyle": "black" } },
+    { "path": "pages/schedule/index", "style": { "navigationBarTitleText": "我的课表", "navigationBarBackgroundColor": "#ffffff", "navigationBarTextStyle": "black" } },
+    { "path": "pages/profile/index", "style": { "navigationBarTitleText": "个人中心", "navigationBarBackgroundColor": "#ffffff", "navigationBarTextStyle": "black" } },
+    { "path": "pages/login/index", "style": { "navigationBarTitleText": "登录", "navigationBarBackgroundColor": "#ffffff", "navigationBarTextStyle": "black", "navigationStyle": "custom" } },
+    { "path": "pages/course/detail", "style": { "navigationBarTitleText": "课程详情", "navigationBarBackgroundColor": "#ffffff", "navigationBarTextStyle": "black" } },
+    { "path": "pages/cart/success", "style": { "navigationBarTitleText": "提交成功", "navigationBarBackgroundColor": "#ffffff", "navigationBarTextStyle": "black", "navigationStyle": "custom" } },
+    { "path": "pages/my/selection", "style": { "navigationBarTitleText": "我的选课", "navigationBarBackgroundColor": "#ffffff", "navigationBarTextStyle": "black" } },
+    { "path": "pages/my/evaluation", "style": { "navigationBarTitleText": "课程评价", "navigationBarBackgroundColor": "#ffffff", "navigationBarTextStyle": "black" } },
+    { "path": "pages/profile/password", "style": { "navigationBarTitleText": "修改密码", "navigationBarBackgroundColor": "#ffffff", "navigationBarTextStyle": "black" } }
+  ],
+  "tabBar": {
+    "custom": true,
+    "color": "#94a3b8",
+    "selectedColor": "#137fec",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      { "pagePath": "pages/home/index", "text": "首页" },
+      { "pagePath": "pages/course/list", "text": "课程" },
+      { "pagePath": "pages/cart/index", "text": "选课车" },
+      { "pagePath": "pages/schedule/index", "text": "课表" },
+      { "pagePath": "pages/profile/index", "text": "我的" }
+    ]
+  },
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "东陆选课",
+    "navigationBarBackgroundColor": "#ffffff",
+    "backgroundColor": "#f6f7f8",
+    "enablePullDownRefresh": false
+  },
+  "easycom": {
+    "autoscan": true,
+    "custom": {
+      "^tab-bar$": "@/components/TabBar.vue",
+      "^course-card$": "@/components/CourseCard.vue",
+      "^empty-state$": "@/components/EmptyState.vue",
+      "^weekly-cart-grid$": "@/components/WeeklyCartGrid.vue"
+    }
+  }
+}

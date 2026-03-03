@@ -5,8 +5,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 <mapper namespace="com.ruoyi.system.mapper.StuSelectionMapper">
 
     <insert id="insertSelection" parameterType="com.ruoyi.common.core.domain.entity.StuSelection">
-        insert into stu_selection(student_id, course_id, semester_id, week_day, class_id, status, create_time)
-        values (#{studentId}, #{courseId}, #{semesterId}, #{weekDay}, #{classId}, coalesce(#{status}, 1), CURRENT_TIMESTAMP)
+        insert into stu_selection(student_id, course_id, semester_id, week_day, class_id, status, assigned, create_time)
+        values (#{studentId}, #{courseId}, #{semesterId}, #{weekDay}, #{classId}, coalesce(#{status}, 1), coalesce(#{assigned}, 0), CURRENT_TIMESTAMP)
     </insert>
 
     <select id="countByStudentSemesterWeekDay" resultType="int">
@@ -29,11 +29,13 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="className"   column="class_name"  />
         <result property="semesterId"  column="semester_id" />
         <result property="createTime"  column="create_time" />
+        <result property="location"    column="location"    />
+        <result property="assigned"     column="assigned"     />
     </resultMap>
 
     <select id="selectMySelections" resultMap="MySelectionVOResult">
-        select s.id, s.course_id, s.week_day, s.class_id, s.semester_id, s.create_time,
-               c.course_name, c.teacher_name, cl.class_name
+        select s.id, s.course_id, s.week_day, s.class_id, s.semester_id, s.create_time, coalesce(s.assigned, 0) as assigned,
+               c.course_name, c.teacher_name, c.location, cl.class_name
         from stu_selection s
         join cou_course c on s.course_id = c.id and c.del_flag = '0'
         left join sys_class cl on s.class_id = cl.id
@@ -42,7 +44,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </select>
 
     <select id="selectById" resultType="com.ruoyi.common.core.domain.entity.StuSelection">
-        select id, student_id, course_id, semester_id, week_day, class_id, status, create_time
+        select id, student_id, course_id, semester_id, week_day, class_id, status, assigned, create_time
         from stu_selection where id = #{id}
     </select>
 
@@ -92,4 +94,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         group by s.week_day
         order by s.week_day asc
     </select>
+
+    <delete id="deleteBySemesterId">
+        delete from stu_selection where semester_id = #{semesterId}
+    </delete>
 </mapper>

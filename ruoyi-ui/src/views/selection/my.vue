@@ -9,10 +9,10 @@
         </div>
         <div class="view-toggle">
           <el-radio-group v-model="viewMode" size="small">
-            <el-radio-button label="list">
+            <el-radio-button value="list">
               <el-icon><List /></el-icon> 列表
             </el-radio-button>
-            <el-radio-button label="week">
+            <el-radio-button value="week">
               <el-icon><Calendar /></el-icon> 课表
             </el-radio-button>
           </el-radio-group>
@@ -46,7 +46,9 @@
           </el-table-column>
           <el-table-column label="操作" align="center" width="120" fixed="right">
             <template #default="scope">
+              <el-tag v-if="scope.row.assigned === 1" type="info" size="small" effect="plain">指定</el-tag>
               <el-button
+                v-else
                 link
                 type="danger"
                 icon="Delete"
@@ -77,7 +79,8 @@
                       <div class="info-row"><el-icon><School /></el-icon> {{ selectionMap[day.value].className }}</div>
                     </div>
                     <div class="course-card-footer">
-                      <el-button link type="danger" size="small" icon="Delete" @click="handleDrop(selectionMap[day.value])">退课</el-button>
+                      <el-tag v-if="selectionMap[day.value].assigned === 1" type="info" size="small" effect="plain">指定</el-tag>
+                      <el-button v-else link type="danger" size="small" icon="Delete" @click="handleDrop(selectionMap[day.value])">退课</el-button>
                     </div>
                   </div>
                 </template>
@@ -145,6 +148,10 @@ function loadList() {
 }
 
 function handleDrop(row) {
+  if (row.assigned === 1) {
+    proxy.$modal.msgWarning('该课程为管理员指定，不可退课')
+    return
+  }
   // If called from list view, we use confirm modal. 
   // If called from week view popconfirm, we can skip double confirmation or just reuse logic.
   // The popconfirm in template handles the UI confirmation.
@@ -413,6 +420,38 @@ onMounted(() => {
   .empty-text {
     font-size: 12px;
     letter-spacing: 1px;
+  }
+}
+
+// ── 表格样式优化 ──────────────────────────────────────
+:deep(.el-table) {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+
+  th.el-table__cell {
+    background-color: #F8FAFC;
+    color: #475569;
+    font-weight: 600;
+    height: 32px;
+    padding: 0;
+  }
+
+  td.el-table__cell {
+    padding: 0;
+  }
+  
+  .el-table__body tr:hover > td.el-table__cell {
+    background-color: #e6f7ff !important;
+    background-image: none !important;
+  }
+
+  // 操作按钮
+  .el-button {
+    padding: 4px;
+    height: 24px;
+    font-size: 12px;
+    border-radius: 4px;
   }
 }
 </style>

@@ -36,6 +36,12 @@ public class MySelectionVO
     /** 选课时间 */
     private Date createTime;
 
+    /** 上课地点 */
+    private String location;
+
+    /** 是否管理员指定 1是 0否 */
+    private Integer assigned;
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public Long getCourseId() { return courseId; }
@@ -54,4 +60,8 @@ public class MySelectionVO
     public void setSemesterId(Long semesterId) { this.semesterId = semesterId; }
     public Date getCreateTime() { return createTime; }
     public void setCreateTime(Date createTime) { this.createTime = createTime; }
+    public String getLocation() { return location; }
+    public void setLocation(String location) { this.location = location; }
+    public Integer getAssigned() { return assigned; }
+    public void setAssigned(Integer assigned) { this.assigned = assigned; }
 }

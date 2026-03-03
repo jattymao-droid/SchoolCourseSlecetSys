@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.ruoyi.common.annotation.Log;
@@ -59,7 +60,7 @@ public class CourseController extends BaseController
         return getDataTable(list);
     }
 
-    @PreAuthorize("@ss.hasPermi('course:course:query')")
+    @PreAuthorize("@ss.hasPermi('course:course:query') or @ss.hasPermi('course:selection:cart')")
     @GetMapping("/{id}")
     public AjaxResult getInfo(@PathVariable("id") Long id)
     {
@@ -135,5 +136,43 @@ public class CourseController extends BaseController
         List<CourseSelectedStudentVO> list = courseService.selectSelectedStudents(id);
         ExcelUtil<CourseSelectedStudentVO> util = new ExcelUtil<>(CourseSelectedStudentVO.class);
         util.exportExcel(response, list, "选课学生");
+    }
+
+    @Log(title = "课程管理", businessType = BusinessType.EXPORT)
+    @PreAuthorize("@ss.hasPermi('course:course:export')")
+    @PostMapping("/export")
+    public void export(HttpServletResponse response, CouCourse course)
+    {
+        List<CouCourse> list = courseService.selectCourseList(course);
+        ExcelUtil<CouCourse> util = new ExcelUtil<CouCourse>(CouCourse.class);
+        util.exportExcel(response, list, "课程数据");
+    }
+
+    @Log(title = "课程管理", businessType = BusinessType.IMPORT)
+    @PreAuthorize("@ss.hasPermi('course:course:import')")
+    @PostMapping("/importData")
+    public AjaxResult importData(MultipartFile file, boolean updateSupport) throws Exception
+    {
+        ExcelUtil<CouCourse> util = new ExcelUtil<CouCourse>(CouCourse.class);
+        List<CouCourse> courseList = util.importExcel(file.getInputStream());
+        String operName = getUsername();
+        String message = courseService.importCourse(courseList, updateSupport, operName);
+        return success(message);
+    }
+
+    @PostMapping("/importTemplate")
+    public void importTemplate(HttpServletResponse response)
+    {
+        ExcelUtil<CouCourse> util = new ExcelUtil<CouCourse>(CouCourse.class);
+        util.importTemplateExcel(response, "课程数据");
+    }
+
+    @PreAuthorize("@ss.hasPermi('course:course:edit')")
+    @Log(title = "课程管理", businessType = BusinessType.CLEAN)
+    @PostMapping("/initSelectionData")
+    public AjaxResult initSelectionData(@RequestParam Long semesterId)
+    {
+        int deleted = courseService.initSelectionData(semesterId);
+        return success("初始化成功，已清空 " + deleted + " 条选课记录");
     }
 }

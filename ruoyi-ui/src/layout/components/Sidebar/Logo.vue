@@ -64,38 +64,66 @@ const getLogoTextColor = computed(() => {
 
 .sidebar-logo-container {
   position: relative;
-  height: 50px;
-  line-height: 50px;
+  height: 60px;
+  line-height: 60px;
   background: v-bind(getLogoBackground);
   text-align: center;
   overflow: hidden;
+  border-bottom: 1px solid rgba(79, 70, 229, 0.08);
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.06);
 
   & .sidebar-logo-link {
     height: 100%;
     width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 0 12px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &:hover {
+      transform: scale(1.02);
+      
+      .sidebar-logo {
+        transform: rotate(5deg) scale(1.1);
+        filter: drop-shadow(0 4px 8px rgba(79, 70, 229, 0.3));
+      }
+    }
 
     & .sidebar-logo {
-      width: 32px;
-      height: 32px;
+      flex-shrink: 0;
+      width: 36px;
+      height: 36px;
       vertical-align: middle;
-      margin-right: 12px;
+      margin-right: 8px;
+      border-radius: 8px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     & .sidebar-title {
-      display: inline-block;
+      flex: 1;
+      min-width: 0;
       margin: 0;
+      padding-left: 4px;
+      font-weight: 700;
+      font-size: 15px;
+      line-height: 1.4;
+      font-family: 'PingFang SC', 'Microsoft YaHei', Avenir, Helvetica Neue, Arial, Helvetica, sans-serif;
       color: v-bind(getLogoTextColor);
-      font-weight: 600;
-      line-height: 50px;
-      font-size: 14px;
-      font-family: Avenir, Helvetica Neue, Arial, Helvetica, sans-serif;
-      vertical-align: middle;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
   }
 
   &.collapse {
     .sidebar-logo {
       margin-right: 0px;
+    }
+    
+    .sidebar-title {
+      display: none;
     }
   }
 }

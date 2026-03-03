@@ -1,5 +1,6 @@
 package com.ruoyi.system.service.impl;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -88,23 +89,23 @@ public class DashboardServiceImpl implements IDashboardService
         if (current != null)
         {
             List<SelectionTrendVO> trend = selectionMapper.selectTrendByDate(current.getId(), 14);
-            result.put("selectionTrend", trend != null ? trend : List.of());
+            result.put("selectionTrend", trend != null ? trend : Collections.emptyList());
 
             List<RecentSelectionVO> recent = selectionMapper.selectRecentSelections(current.getId(), 8);
-            result.put("recentSelections", recent != null ? recent : List.of());
+            result.put("recentSelections", recent != null ? recent : Collections.emptyList());
 
             List<Map<String, Object>> byWeekday = selectionMapper.selectCountByWeekday(current.getId());
-            result.put("selectionByWeekday", byWeekday != null ? byWeekday : List.of());
+            result.put("selectionByWeekday", byWeekday != null ? byWeekday : Collections.emptyList());
 
             List<PopularCourseVO> popular = courseMapper.selectPopularCourses(current.getId(), 6);
-            result.put("popularCourses", popular != null ? popular : List.of());
+            result.put("popularCourses", popular != null ? popular : Collections.emptyList());
         }
         else
         {
-            result.put("selectionTrend", List.of());
-            result.put("recentSelections", List.of());
-            result.put("selectionByWeekday", List.of());
-            result.put("popularCourses", List.of());
+            result.put("selectionTrend", Collections.emptyList());
+            result.put("recentSelections", Collections.emptyList());
+            result.put("selectionByWeekday", Collections.emptyList());
+            result.put("popularCourses", Collections.emptyList());
         }
 
         return result;
@@ -122,22 +123,22 @@ public class DashboardServiceImpl implements IDashboardService
         {
             result.put("selectionCount", 0);
             result.put("pendingEvaluationCount", 0);
-            result.put("coursesToEvaluate", List.of());
+            result.put("coursesToEvaluate", Collections.emptyList());
             return result;
         }
 
-        Long studentId = student.getId();
+        // stu_selection.student_id 存的是 user_id，需传 userId
         long selectionCount = 0;
         int pendingEvaluationCount = 0;
-        List<CourseToEvaluateVO> coursesToEvaluate = List.of();
+        List<CourseToEvaluateVO> coursesToEvaluate = Collections.emptyList();
 
         if (current != null)
         {
             List<com.ruoyi.system.domain.MySelectionVO> selections =
-                selectionMapper.selectMySelections(studentId, current.getId());
+                selectionMapper.selectMySelections(userId, current.getId());
             selectionCount = selections != null ? selections.size() : 0;
 
-            coursesToEvaluate = evaluationService.getCoursesToEvaluate(studentId, current.getId());
+            coursesToEvaluate = evaluationService.getCoursesToEvaluate(userId, current.getId());
             if (coursesToEvaluate != null)
             {
                 pendingEvaluationCount = (int) coursesToEvaluate.stream().filter(c -> !Boolean.TRUE.equals(c.getEvaluated())).count();
@@ -146,16 +147,16 @@ public class DashboardServiceImpl implements IDashboardService
 
         result.put("selectionCount", selectionCount);
         result.put("pendingEvaluationCount", pendingEvaluationCount);
-        result.put("coursesToEvaluate", coursesToEvaluate != null ? coursesToEvaluate : List.of());
+        result.put("coursesToEvaluate", coursesToEvaluate != null ? coursesToEvaluate : Collections.emptyList());
 
         if (current != null)
         {
             List<PopularCourseVO> popular = courseMapper.selectPopularCourses(current.getId(), 4);
-            result.put("popularCourses", popular != null ? popular : List.of());
+            result.put("popularCourses", popular != null ? popular : Collections.emptyList());
         }
         else
         {
-            result.put("popularCourses", List.of());
+            result.put("popularCourses", Collections.emptyList());
         }
 
         return result;

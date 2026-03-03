@@ -67,3 +67,19 @@ export function getCurrentSemester() {
     method: 'get'
   })
 }
+
+// 开始选课（当前学期）
+export function startSelection() {
+  return request({
+    url: '/course/semester/startSelection',
+    method: 'put'
+  })
+}
+
+// 结束选课（当前学期）
+export function endSelection() {
+  return request({
+    url: '/course/semester/endSelection',
+    method: 'put'
+  })
+}
