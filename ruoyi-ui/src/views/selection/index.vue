@@ -53,7 +53,10 @@
                           <div class="quota-bar">
                             <div class="quota-fill" :style="getQuotaStyle(c)"></div>
                           </div>
-                          <span class="quota-text" :class="getQuotaTextClass(c)">{{ remaining(c) }}/{{ c.quota ?? c.totalQuota ?? 0 }} 剩余</span>
+                          <span class="quota-text" :class="getQuotaTextClass(c)">总名额: {{ c.quota }} / 剩余: {{ remaining(c) }}</span>
+                        </div>
+                        <div class="quota-section" v-if="c.classQuota !== undefined">
+                          <span class="info-chip">班级名额: {{ c.classQuota }} / 剩余: {{ c.classRemaining }}</span>
                         </div>
                         <div class="course-action">
                           <el-button
@@ -362,12 +365,34 @@ function loadCourses() {
 
 /** 统一课程数据格式：兼容 camelCase/snake_case，确保名额字段正确 */
 function normalizeCourse(c) {
+  // 基础数据
+  const totalQuota = c.totalQuota ?? c.total_quota ?? 0
+  const totalSelected = c.selectedCount ?? c.selected_count ?? 0
+  
+  // 班级数据 (仅当查询参数包含 classId 时有效)
+  // Mapper 返回的 q.quota 和 q.selected 对应 c.quota 和 c.selected
+  let classQuota = undefined
+  let classRemaining = undefined
+  
+  if (c.quota !== undefined && c.quota !== null) {
+      classQuota = c.quota
+      const classSelected = c.selected ?? 0
+      classRemaining = Math.max(0, classQuota - classSelected)
+  }
+
   return {
     ...c,
-    quota: c.quota ?? c.totalQuota ?? c.total_quota ?? 0,
-    selected: c.selected ?? c.selectedCount ?? c.selected_count ?? 0,
-    totalQuota: c.totalQuota ?? c.total_quota ?? 0,
-    selectedCount: c.selectedCount ?? c.selected_count ?? 0
+    // 主显示区使用总名额
+    quota: totalQuota,
+    selected: totalSelected,
+    
+    // 原始字段保留或标准化
+    totalQuota,
+    selectedCount: totalSelected,
+    
+    // 班级特定字段
+    classQuota,
+    classRemaining
   }
 }
 
@@ -377,7 +402,8 @@ function handleAddToCart(course) {
     if (res.msg) proxy.$modal.msgSuccess(res.msg)
     // 更新本地购物车状态，避免频繁请求
     cart.value[course.weekDay] = course
-    loadCart() // 还是重新加载以确保一致性
+    loadCart()
+    loadCourses() // 刷新课程列表，更新剩余名额
   }).catch(err => {
     // proxy.$modal.msgError(err.msg || '加入失败')
   })
@@ -392,6 +418,7 @@ function handleRemoveFromCart(weekDay) {
   removeFromCart(currentSemester.value.id, weekDay).then(() => {
     delete cart.value[weekDay]
     loadCart()
+    loadCourses() // 刷新课程列表，更新剩余名额
   }).catch(err => {
     proxy.$modal.msgError(err?.response?.data?.msg || err?.message || '移除失败')
   })
@@ -403,6 +430,7 @@ function handleClearCart() {
     return clearCart(currentSemester.value.id)
   }).then(() => {
     loadCart()
+    loadCourses() // 刷新课程列表，更新剩余名额
     proxy.$modal.msgSuccess('已清空')
   }).catch(() => {})
 }
@@ -414,6 +442,7 @@ function handleSubmit() {
   }).then(() => {
     proxy.$modal.msgSuccess('选课提交成功！')
     loadCart()
+    loadCourses() // 刷新课程列表，更新剩余名额
   })
 }
 

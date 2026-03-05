@@ -1,0 +1,36 @@
+# 东陆高中选课系统 - 后端镜像
+# 多阶段构建：Maven 编译 + OpenJDK 运行
+
+# 阶段1: 构建
+FROM maven:3.8-eclipse-temurin-8-alpine AS builder
+WORKDIR /build
+
+# 复制 pom 和源码
+COPY pom.xml .
+COPY ruoyi-admin/pom.xml ruoyi-admin/
+COPY ruoyi-common/pom.xml ruoyi-common/
+COPY ruoyi-framework/pom.xml ruoyi-framework/
+COPY ruoyi-system/pom.xml ruoyi-system/
+COPY ruoyi-quartz/pom.xml ruoyi-quartz/
+COPY ruoyi-generator/pom.xml ruoyi-generator/
+
+# 下载依赖（利用缓存）
+RUN mvn dependency:go-offline -B -pl ruoyi-admin -am || true
+
+COPY . .
+RUN mvn clean package -pl ruoyi-admin -am -DskipTests -B -q
+
+# 阶段2: 运行
+FROM eclipse-temurin:8-jre-alpine
+WORKDIR /app
+
+# 时区
+RUN apk add --no-cache tzdata && cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+
+COPY --from=builder /build/ruoyi-admin/target/ruoyi-admin.jar .
+COPY docker/application-docker.yml ./application-docker.yml
+
+EXPOSE 8080
+ENTRYPOINT ["java", "-Xms256m", "-Xmx512m", "-jar", "ruoyi-admin.jar", \
+    "--spring.profiles.active=druid,prod", \
+    "--spring.config.additional-location=file:/app/application-docker.yml"]

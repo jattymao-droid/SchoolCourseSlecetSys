@@ -39,6 +39,7 @@
           :key="course.id"
           :course="course"
           @click="goDetail(course.id)"
+          @add="fetchCourses(true)"
         />
 
         <!-- 加载更多 -->
@@ -84,6 +85,7 @@ const refreshing = ref(false)
 const noMore = ref(false)
 const pageNum = ref(1)
 const pageSize = 10
+const isFirstShow = ref(true)
 
 const filters = [
   { label: '全部', value: '' },
@@ -174,6 +176,9 @@ onShow(async () => {
   try {
     await cartStore.loadSemester()
     currentSemesterId.value = cartStore.currentSemesterId
+    // 非首次显示时刷新课程列表，确保剩余名额实时更新（首次由 onMounted 已加载）
+    if (!isFirstShow.value) fetchCourses(true)
+    else isFirstShow.value = false
   } catch {
     // 网络错误或未登录时静默处理，request 内部会跳转登录页
   }

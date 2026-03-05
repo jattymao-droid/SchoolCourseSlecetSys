@@ -62,6 +62,14 @@ export function resetStudentPwd(userId, password) {
   })
 }
 
+// 重置所有学生密码
+export function resetAllStudentPwd() {
+  return request({
+    url: '/course/student/resetAllPwd',
+    method: 'post'
+  })
+}
+
 // 获取当前登录学生信息（选课中心用）
 export function getCurrentStudent() {
   return request({

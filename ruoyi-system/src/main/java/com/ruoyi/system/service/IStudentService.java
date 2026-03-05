@@ -29,4 +29,9 @@ public interface IStudentService
      * 重置密码，若 newPassword 为空则使用学号后6位
      */
     int resetPassword(Long userId, String newPassword);
+
+    /**
+     * 重置所有学生密码为 123456
+     */
+    int resetAllStudentPasswords();
 }

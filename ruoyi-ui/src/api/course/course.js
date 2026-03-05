@@ -59,6 +59,14 @@ export function listSelectedStudents(courseId) {
   })
 }
 
+// 查询课程指定学生（管理员指定且已提交的）
+export function listAssignedStudents(courseId) {
+  return request({
+    url: '/course/course/' + courseId + '/assignedStudents',
+    method: 'get'
+  })
+}
+
 // 指定学生到课程
 export function assignStudents(courseId, studentIds) {
   return request({
@@ -66,6 +74,23 @@ export function assignStudents(courseId, studentIds) {
     method: 'post',
     data: { studentIds }
   })
+}
+
+// 导入指定学生名单
+export function assignStudentsImport(courseId, file) {
+  const formData = new FormData()
+  formData.append('file', file)
+  return request({
+    url: '/course/course/' + courseId + '/assignStudents/import',
+    method: 'post',
+    data: formData,
+    headers: { 'Content-Type': 'multipart/form-data' }
+  })
+}
+
+// 指定学生导入模板下载路径（用于 proxy.download）
+export function getAssignStudentsImportTemplatePath(courseId) {
+  return 'course/course/' + courseId + '/assignStudents/importTemplate'
 }
 
 // 初始化选课数据（清空本学期选课记录）

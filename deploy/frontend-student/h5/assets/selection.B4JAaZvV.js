@@ -1,0 +1,1 @@
+import{h as e}from"./_plugin-vue_export-helper.Cmy1ARUe.js";function r(r){return e.get("/course/selection/my",{semesterId:r})}function o(r){return e.post(`/course/selection/drop/${r}`)}export{o as d,r as g};

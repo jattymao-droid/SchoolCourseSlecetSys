@@ -58,7 +58,7 @@ async function handleRemove(day: number) {
   const item = cartStore.getByWeekDay(day)
   if (!item) return
   if (item.assigned) {
-    uni.showToast({ title: '该课程为管理员指定，不可移除', icon: 'none' })
+    uni.showToast({ title: '该课程为教师指定，不可移除', icon: 'none' })
     return
   }
   uni.showModal({

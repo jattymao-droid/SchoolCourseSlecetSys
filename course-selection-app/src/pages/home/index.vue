@@ -186,6 +186,7 @@ function goProfile() {
 </script>
 
 <style lang="scss" scoped>
+@use "sass:color";
 .home-page {
   min-height: 100vh;
   background: linear-gradient(180deg, #EFF6FF 0%, $uni-bg-color-grey 30%, $uni-bg-color 100%);
@@ -507,8 +508,8 @@ function goProfile() {
   font-size: 26rpx; 
   font-weight: 500;
 }
-.tip-success .tip-text { color: darken($uni-color-success, 10%); }
-.tip-warn .tip-text { color: darken($uni-color-warning, 10%); }
+.tip-success .tip-text { color: color.adjust($uni-color-success, $lightness: -10%); }
+.tip-warn .tip-text { color: color.adjust($uni-color-warning, $lightness: -10%); }
 
 /* Pad */
 @media (min-width: 768px) {

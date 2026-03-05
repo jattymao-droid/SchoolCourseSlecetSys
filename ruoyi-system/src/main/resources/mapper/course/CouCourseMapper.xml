@@ -119,6 +119,15 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         order by s.create_time asc
     </select>
 
+    <select id="selectAssignedStudentsByCourseId" resultType="com.ruoyi.system.domain.CourseSelectedStudentVO">
+        select i.user_id as userId, i.student_no as studentNo, i.real_name as realName, c.class_name as className, s.create_time as createTime
+        from stu_selection s
+        join stu_student_info i on s.student_id = i.user_id and i.del_flag = '0'
+        left join sys_class c on i.class_id = c.id
+        where s.course_id = #{courseId} and s.status = 1 and coalesce(s.assigned, 0) = 1
+        order by s.create_time asc
+    </select>
+
     <resultMap type="com.ruoyi.system.domain.PopularCourseVO" id="PopularCourseResult">
         <result property="courseId" column="course_id"/>
         <result property="courseName" column="course_name"/>

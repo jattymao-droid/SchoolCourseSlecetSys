@@ -100,5 +100,11 @@ const activeMenu = computed(() => {
       color: v-bind(getMenuTextColor);
     }
   }
+
+  &.has-logo {
+    .el-scrollbar {
+      height: calc(100% - 140px);
+    }
+  }
 }
 </style>

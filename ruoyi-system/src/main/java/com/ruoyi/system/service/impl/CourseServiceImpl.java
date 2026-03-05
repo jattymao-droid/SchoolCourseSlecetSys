@@ -1,29 +1,42 @@
 package com.ruoyi.system.service.impl;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.ruoyi.common.core.domain.entity.SysUser;
 import com.ruoyi.common.core.domain.entity.CouClassQuota;
 import com.ruoyi.common.core.domain.entity.CouCourse;
+import com.ruoyi.common.core.domain.entity.SysClass;
 import com.ruoyi.common.core.domain.entity.SysGrade;
 import com.ruoyi.common.core.domain.entity.SysSemester;
+import com.ruoyi.common.constant.UserConstants;
 import com.ruoyi.common.exception.ServiceException;
+import com.ruoyi.common.utils.SecurityUtils;
 import com.ruoyi.common.utils.StringUtils;
+import com.ruoyi.common.utils.poi.ExcelUtil;
+import com.ruoyi.system.domain.AssignStudentsImportDTO;
 import com.ruoyi.system.domain.CourseSelectedStudentVO;
-import com.ruoyi.common.core.domain.entity.StuSelection;
 import com.ruoyi.common.core.domain.entity.StuStudentInfo;
 import com.ruoyi.system.mapper.CouClassQuotaMapper;
 import com.ruoyi.system.mapper.CouCourseMapper;
+import com.ruoyi.system.mapper.SysClassMapper;
 import com.ruoyi.system.mapper.StuSelectionMapper;
 import com.ruoyi.system.mapper.StuStudentInfoMapper;
 import com.ruoyi.system.service.ICourseService;
 import com.ruoyi.system.service.ISelectionService;
 import com.ruoyi.system.service.ISysGradeService;
 import com.ruoyi.system.service.ISysSemesterService;
+import com.ruoyi.common.core.domain.dto.CourseImportDTO;
 import com.ruoyi.system.service.ISysUserService;
+import com.ruoyi.system.service.ISysDeptService;
+import com.ruoyi.common.core.domain.entity.SysDept;
 
 /**
  * 课程管理 服务实现
@@ -33,6 +46,15 @@ import com.ruoyi.system.service.ISysUserService;
 @Service
 public class CourseServiceImpl implements ICourseService
 {
+    /** 教师角色ID（与 sql/course_selection_init.sql 中 role_id=101 对应） */
+    private static final Long TEACHER_ROLE_ID = 101L;
+
+    /** 教师默认密码 */
+    private static final String TEACHER_DEFAULT_PASSWORD = "123456";
+
+    /** 默认部门ID（与 demo 数据一致，教师/学生归属） */
+    private static final Long DEFAULT_DEPT_ID = 103L;
+
     @Autowired
     private CouCourseMapper courseMapper;
 
@@ -56,6 +78,12 @@ public class CourseServiceImpl implements ICourseService
 
     @Autowired
     private ISelectionService selectionService;
+
+    @Autowired
+    private SysClassMapper classMapper;
+
+    @Autowired
+    private ISysDeptService deptService;
 
 
     @Override
@@ -155,6 +183,41 @@ public class CourseServiceImpl implements ICourseService
     }
 
     @Override
+    public List<CourseSelectedStudentVO> selectAssignedStudents(Long courseId)
+    {
+        CouCourse course = courseMapper.selectCourseById(courseId);
+        if (course == null || course.getSemesterId() == null)
+        {
+            return courseMapper.selectAssignedStudentsByCourseId(courseId);
+        }
+        Set<Long> seenUserIds = new HashSet<>();
+        List<CourseSelectedStudentVO> result = new LinkedList<>();
+        List<CourseSelectedStudentVO> fromDb = courseMapper.selectAssignedStudentsByCourseId(courseId);
+        if (fromDb != null)
+        {
+            for (CourseSelectedStudentVO v : fromDb)
+            {
+                if (v.getUserId() != null && seenUserIds.add(v.getUserId()))
+                {
+                    result.add(v);
+                }
+            }
+        }
+        List<CourseSelectedStudentVO> fromCart = selectionService.listAssignedStudentsInCart(courseId, course.getSemesterId());
+        if (fromCart != null)
+        {
+            for (CourseSelectedStudentVO v : fromCart)
+            {
+                if (v.getUserId() != null && seenUserIds.add(v.getUserId()))
+                {
+                    result.add(v);
+                }
+            }
+        }
+        return result;
+    }
+
+    @Override
     @Transactional(rollbackFor = Exception.class)
     public int assignStudents(Long courseId, List<Long> studentIds)
     {
@@ -202,30 +265,106 @@ public class CourseServiceImpl implements ICourseService
             {
                 throw new ServiceException("学生 " + student.getRealName() + " 所在班级名额已满");
             }
-            StuSelection sel = new StuSelection();
-            sel.setStudentId(userId);
-            sel.setCourseId(courseId);
-            sel.setSemesterId(course.getSemesterId());
-            sel.setWeekDay(course.getWeekDay());
-            sel.setClassId(student.getClassId());
-            sel.setStatus(1);
-            sel.setAssigned(1);
-            selectionMapper.insertSelection(sel);
+            // 指定学生：将课程加入选课车（标记为不可删除），学生提交选课时一并确认；指定即占名额
+            selectionService.addToCartAssigned(userId, course.getSemesterId(), courseId);
             if (quota != null)
             {
                 quotaMapper.incrementSelected(courseId, student.getClassId());
             }
-            // 指定学生直接进入已选课程，不放入选课车
             count++;
         }
         return count;
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
-    public String importCourse(List<CouCourse> courseList, Boolean isUpdateSupport, String operName)
+    public String importAssignStudents(Long courseId, MultipartFile file)
     {
-        if (StringUtils.isNull(courseList) || courseList.size() == 0)
+        if (file == null || file.isEmpty())
+        {
+            throw new ServiceException("上传文件不能为空");
+        }
+        ExcelUtil<AssignStudentsImportDTO> util = new ExcelUtil<>(AssignStudentsImportDTO.class);
+        List<AssignStudentsImportDTO> list;
+        try
+        {
+            list = util.importExcel(file.getInputStream());
+        }
+        catch (Exception e)
+        {
+            throw new ServiceException("解析Excel失败：" + e.getMessage());
+        }
+        if (list == null || list.isEmpty())
+        {
+            throw new ServiceException("导入数据不能为空");
+        }
+        int successNum = 0;
+        int failureNum = 0;
+        StringBuilder failureMsg = new StringBuilder();
+        int maxFailureMsg = 10;
+
+        for (AssignStudentsImportDTO dto : list)
+        {
+            String studentNo = dto.getStudentNo() != null ? dto.getStudentNo().trim() : "";
+            if (StringUtils.isEmpty(studentNo))
+            {
+                failureNum++;
+                if (failureNum <= maxFailureMsg)
+                {
+                    failureMsg.append("<br/>").append(failureNum).append("、学号不能为空");
+                }
+                else if (failureNum == maxFailureMsg + 1)
+                {
+                    failureMsg.append("<br/>... (更多错误已省略)");
+                }
+                continue;
+            }
+            StuStudentInfo student = studentMapper.selectStudentByStudentNo(studentNo);
+            if (student == null)
+            {
+                failureNum++;
+                if (failureNum <= maxFailureMsg)
+                {
+                    failureMsg.append("<br/>").append(failureNum).append("、学号 ").append(studentNo).append(" 不存在");
+                }
+                else if (failureNum == maxFailureMsg + 1)
+                {
+                    failureMsg.append("<br/>... (更多错误已省略)");
+                }
+                continue;
+            }
+            try
+            {
+                assignStudents(courseId, Collections.singletonList(student.getUserId()));
+                successNum++;
+            }
+            catch (Exception e)
+            {
+                failureNum++;
+                if (failureNum <= maxFailureMsg)
+                {
+                    failureMsg.append("<br/>").append(failureNum).append("、学号 ").append(studentNo)
+                        .append(" ").append(student.getRealName()).append("：").append(e.getMessage());
+                }
+                else if (failureNum == maxFailureMsg + 1)
+                {
+                    failureMsg.append("<br/>... (更多错误已省略)");
+                }
+            }
+        }
+        StringBuilder result = new StringBuilder();
+        result.append("导入完成，成功 ").append(successNum).append(" 人");
+        if (failureNum > 0)
+        {
+            result.append("，失败 ").append(failureNum).append(" 人").append(failureMsg);
+        }
+        return result.toString();
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public String importCourse(List<CourseImportDTO> dtoList, Boolean isUpdateSupport, String operName)
+    {
+        if (StringUtils.isNull(dtoList) || dtoList.size() == 0)
         {
             throw new ServiceException("导入课程数据不能为空！");
         }
@@ -233,88 +372,51 @@ public class CourseServiceImpl implements ICourseService
         int failureNum = 0;
         StringBuilder successMsg = new StringBuilder();
         StringBuilder failureMsg = new StringBuilder();
-        for (CouCourse course : courseList)
+        for (CourseImportDTO dto : dtoList)
         {
+            String courseName = dto.getCourseName() != null ? dto.getCourseName() : "未知";
             try
             {
-                // 验证是否存在这个课程
-                // 通过课程名、学期、年级、星期来判断是否唯一？或者只是课程名？
-                // 这里简单点，如果有ID则更新，无ID则新增。但导入通常没有ID。
-                
-                // 处理外键
+                CouCourse course = dtoToCourse(dto);
+                List<CouClassQuota> quotaList = buildQuotaListFromDto(dto);
+                course.setQuotaList(quotaList);
+
+                if (StringUtils.isEmpty(course.getCourseName())) {
+                    throw new ServiceException("课程名称不能为空");
+                }
+                if (course.getWeekDay() == null || course.getWeekDay() < 1 || course.getWeekDay() > 5) {
+                    throw new ServiceException("星期必须为1-5（1=周一至5=周五）");
+                }
                 if (StringUtils.isEmpty(course.getGradeName())) {
                     throw new ServiceException("年级名称不能为空");
                 }
                 if (StringUtils.isEmpty(course.getSemesterName())) {
                     throw new ServiceException("学期名称不能为空");
                 }
-                
-                // 查找年级ID
-                SysGrade gradeParams = new SysGrade();
-                gradeParams.setGradeName(course.getGradeName());
-                List<SysGrade> grades = gradeService.selectGradeList(gradeParams);
-                SysGrade exactGrade = null;
-                for (SysGrade g : grades) {
-                    if (g.getGradeName().equals(course.getGradeName())) {
-                        exactGrade = g;
-                        break;
-                    }
-                }
+
+                SysGrade exactGrade = findGradeByName(course.getGradeName());
                 if (exactGrade == null) {
                     throw new ServiceException("年级不存在: " + course.getGradeName());
                 }
                 course.setGradeId(exactGrade.getId());
-                
-                // 查找学期ID
-                SysSemester semesterParams = new SysSemester();
-                semesterParams.setSemesterName(course.getSemesterName());
-                List<SysSemester> semesters = semesterService.selectSemesterList(semesterParams);
-                SysSemester exactSemester = null;
-                for (SysSemester s : semesters) {
-                    if (s.getSemesterName().equals(course.getSemesterName())) {
-                        exactSemester = s;
-                        break;
-                    }
-                }
+
+                SysSemester exactSemester = findSemesterByName(course.getSemesterName());
                 if (exactSemester == null) {
                     throw new ServiceException("学期不存在: " + course.getSemesterName());
                 }
                 course.setSemesterId(exactSemester.getId());
-                
-                // 查找教师ID
+
                 if (StringUtils.isNotEmpty(course.getTeacherName())) {
-                    SysUser userParams = new SysUser();
-                    userParams.setNickName(course.getTeacherName());
-                    List<SysUser> users = userService.selectUserList(userParams);
-                    SysUser exactUser = null;
-                    for (SysUser u : users) {
-                        if (u.getNickName().equals(course.getTeacherName())) {
-                            exactUser = u;
-                            break;
-                        }
-                    }
-                    if (exactUser == null) {
-                        // 尝试按用户名查找（如果用户填的是账号）
-                        SysUser userByName = userService.selectUserByUserName(course.getTeacherName());
-                        if (userByName != null) {
-                            exactUser = userByName;
-                        }
-                    }
-                    
+                    SysUser exactUser = findOrCreateTeacherUser(course.getTeacherName().trim(), operName);
                     if (exactUser != null) {
                         course.setTeacherId(exactUser.getUserId());
-                        // 确保 teacherName 与系统一致（可选，如果想保留用户填写的名字可以不覆盖，但为了数据一致性建议覆盖）
-                        course.setTeacherName(exactUser.getNickName()); 
+                        course.setTeacherName(exactUser.getNickName());
                     } else {
-                        // 教师必须存在于系统中
-                         throw new ServiceException("教师不存在: " + course.getTeacherName());
+                        course.setTeacherId(null);
+                        course.setTeacherName(course.getTeacherName().trim());
                     }
-                } else {
-                    // 如果教师名字为空，是否允许？通常需要教师
-                    // 如果允许为空，则 teacherId 为 null
                 }
 
-                // 验证是否存在
                 CouCourse existingCourse = null;
                 CouCourse query = new CouCourse();
                 query.setCourseName(course.getCourseName());
@@ -348,20 +450,176 @@ public class CourseServiceImpl implements ICourseService
             catch (Exception e)
             {
                 failureNum++;
-                String msg = "<br/>" + failureNum + "、课程 " + course.getCourseName() + " 导入失败：";
-                failureMsg.append(msg + e.getMessage());
+                failureMsg.append("<br/>" + failureNum + "、课程 " + courseName + " 导入失败：" + e.getMessage());
             }
         }
         if (failureNum > 0)
         {
             failureMsg.insert(0, "很抱歉，导入失败！共 " + failureNum + " 条数据格式不正确，错误如下：");
-            successMsg.append("");
         }
         else
         {
             successMsg.insert(0, "恭喜您，数据已全部导入成功！共 " + successNum + " 条，数据如下：");
         }
         return successMsg.toString() + failureMsg.toString();
+    }
+
+    private CouCourse dtoToCourse(CourseImportDTO dto)
+    {
+        CouCourse course = new CouCourse();
+        course.setCourseName(trimToNull(dto.getCourseName()));
+        course.setWeekDay(dto.getWeekDay());
+        course.setSemesterName(trimToNull(dto.getSemesterName()));
+        course.setGradeName(trimToNull(dto.getGradeName()));
+        course.setTeacherName(trimToNull(dto.getTeacherName()));
+        course.setLocation(trimToNull(dto.getLocation()));
+        return course;
+    }
+
+    private static String trimToNull(String s)
+    {
+        if (s == null) return null;
+        String t = s.trim();
+        return t.isEmpty() ? null : t;
+    }
+
+    private List<CouClassQuota> buildQuotaListFromDto(CourseImportDTO dto)
+    {
+        List<CouClassQuota> list = new ArrayList<>();
+        String gradeName = trimToNull(dto.getGradeName());
+        if (StringUtils.isEmpty(gradeName)) {
+            return list;
+        }
+        Integer[] quotas = { dto.getQuota1(), dto.getQuota2(), dto.getQuota3(), dto.getQuota4(), dto.getQuota5() };
+        String[] shortNames = { "1班", "2班", "3班", "4班", "5班" };
+        for (int i = 0; i < quotas.length; i++) {
+            Integer q = quotas[i];
+            if (q == null || q < 1) {
+                continue;
+            }
+            SysClass sysClass = findClassByGradeAndShortName(gradeName, shortNames[i]);
+            if (sysClass == null) {
+                continue;
+            }
+            CouClassQuota quota = new CouClassQuota();
+            quota.setClassId(sysClass.getId());
+            quota.setQuota(q);
+            list.add(quota);
+        }
+        return list;
+    }
+
+    /** 按年级和班级简称查找班级，支持 "1班" 或 "八年级1班" 等格式 */
+    private SysClass findClassByGradeAndShortName(String gradeName, String shortName)
+    {
+        SysClass c = classMapper.selectByGradeNameAndClassName(gradeName, shortName);
+        if (c != null) {
+            return c;
+        }
+        String fullName = gradeName + shortName;
+        return classMapper.selectByGradeNameAndClassName(gradeName, fullName);
+    }
+
+    private SysGrade findGradeByName(String gradeName)
+    {
+        SysGrade params = new SysGrade();
+        params.setGradeName(gradeName);
+        List<SysGrade> grades = gradeService.selectGradeList(params);
+        for (SysGrade g : grades) {
+            if (gradeName.equals(g.getGradeName())) {
+                return g;
+            }
+        }
+        return null;
+    }
+
+    private SysSemester findSemesterByName(String semesterName)
+    {
+        SysSemester params = new SysSemester();
+        params.setSemesterName(semesterName);
+        List<SysSemester> semesters = semesterService.selectSemesterList(params);
+        for (SysSemester s : semesters) {
+            if (semesterName.equals(s.getSemesterName())) {
+                return s;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 查找教师用户，若不存在则自动创建（userType=02，角色=教师）
+     * 创建规则：userName=teacher_姓名，nickName=姓名，默认密码123456，角色=教师(101)，部门=103
+     * @return 教师用户，若查找和创建均失败则返回 null（不抛异常，课程照常导入）
+     */
+    private SysUser findOrCreateTeacherUser(String teacherName, String operName)
+    {
+        // 1. 按昵称精确查找（支持已存在用户）
+        SysUser user = findUserByNickName(teacherName);
+        if (user != null) {
+            return user;
+        }
+        // 2. 按 userName=teacher_姓名 查找（支持之前自动创建的用户）
+        String userName = "teacher_" + teacherName;
+        user = userService.selectUserByUserName(userName);
+        if (user != null) {
+            return user;
+        }
+        // 3. 不存在则自动创建
+        user = buildTeacherUser(teacherName);
+        user.setCreateBy(operName);
+        
+        // 检查部门是否存在
+        SysDept dept = deptService.selectDeptById(DEFAULT_DEPT_ID);
+        if (dept != null) {
+            user.setDeptId(DEFAULT_DEPT_ID);
+        } else {
+            // 默认部门不存在，查找第一个可用部门
+            SysDept queryDept = new SysDept();
+            queryDept.setStatus("0");
+            List<SysDept> deptList = deptService.selectDeptList(queryDept);
+            if (!deptList.isEmpty()) {
+                user.setDeptId(deptList.get(0).getDeptId());
+            } else {
+                // 无可用部门，无法创建用户
+                throw new ServiceException("无法自动创建教师用户：未找到可用部门");
+            }
+        }
+
+        try {
+            userService.insertUser(user);
+            if (user.getUserId() == null) {
+                user = userService.selectUserByUserName(userName);
+            }
+        } catch (Exception e) {
+            // 捕获异常尝试重新查找（可能是并发插入导致）
+            user = userService.selectUserByUserName(userName);
+            if (user == null) {
+                throw new ServiceException("创建教师用户失败：" + e.getMessage());
+            }
+        }
+        return user;
+    }
+
+    private SysUser findUserByNickName(String nickName)
+    {
+        SysUser params = new SysUser();
+        params.setNickName(nickName);
+        List<SysUser> users = userService.selectUserList(params);
+        return users.isEmpty() ? null : users.get(0);
+    }
+
+    /** 构建教师用户（用于课程导入时自动创建） */
+    private SysUser buildTeacherUser(String teacherName)
+    {
+        SysUser user = new SysUser();
+        user.setUserName("teacher_" + teacherName);
+        user.setNickName(teacherName);
+        user.setUserType("02"); // 教师
+        user.setStatus(UserConstants.NORMAL);
+        user.setDeptId(DEFAULT_DEPT_ID);
+        user.setPassword(SecurityUtils.encryptPassword(TEACHER_DEFAULT_PASSWORD));
+        user.setRoleIds(new Long[]{ TEACHER_ROLE_ID });
+        return user;
     }
 
     private void validateCourse(CouCourse course)

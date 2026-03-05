@@ -117,7 +117,7 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" width="280" class-name="small-padding fixed-width">
+      <el-table-column label="操作" align="center" width="320" class-name="small-padding fixed-width">
         <template #default="scope">
           <div class="action-buttons">
             <el-tooltip content="修改课程" placement="top">
@@ -128,6 +128,9 @@
             </el-tooltip>
             <el-tooltip content="查看选课学生" placement="top">
               <el-button link type="info" icon="User" @click="handleViewStudents(scope.row)" v-hasPermi="['course:course:query']"></el-button>
+            </el-tooltip>
+            <el-tooltip content="查看指定学生" placement="top">
+              <el-button link type="warning" icon="UserFilled" @click="handleViewAssignedStudents(scope.row)" v-hasPermi="['course:course:query']"></el-button>
             </el-tooltip>
             <el-tooltip content="指定学生" placement="top">
               <el-button link type="warning" icon="Plus" @click="handleAssignStudents(scope.row)" v-hasPermi="['course:course:edit']"></el-button>
@@ -281,6 +284,24 @@
       <el-empty v-if="!studentsLoading && selectedStudents.length === 0" description="暂无选课学生" />
     </el-dialog>
 
+    <!-- 查看指定学生对话框 -->
+    <el-dialog title="指定学生" v-model="assignedStudentsOpen" width="700px" append-to-body>
+      <div v-if="viewAssignedStudentsCourseName" style="margin-bottom: 12px; color: #606266">
+        <span>课程：<strong>{{ viewAssignedStudentsCourseName }}</strong></span>
+      </div>
+      <el-table v-loading="assignedStudentsLoading" :data="assignedStudents" max-height="400">
+        <el-table-column label="学号" align="center" prop="studentNo" width="120" />
+        <el-table-column label="姓名" align="center" prop="realName" width="100" />
+        <el-table-column label="班级" align="center" prop="className" min-width="120" />
+        <el-table-column label="选课时间" align="center" prop="createTime" width="180">
+          <template #default="scope">
+            <span>{{ parseTime(scope.row.createTime) }}</span>
+          </template>
+        </el-table-column>
+      </el-table>
+      <el-empty v-if="!assignedStudentsLoading && assignedStudents.length === 0" description="暂无指定学生" />
+    </el-dialog>
+
     <!-- 指定学生对话框 -->
     <el-dialog title="指定学生" v-model="assignState.open" width="720px" append-to-body>
       <div v-if="assignState.course" style="margin-bottom: 12px; color: #606266">
@@ -311,9 +332,45 @@
       </el-table>
       <el-empty v-if="!assignState.loading && assignStateFilteredStudents.length === 0" description="该年级暂无可选学生，或已全部指定。请确认课程适用年级下是否有班级和学生。" />
       <template #footer>
+        <div class="dialog-footer" style="display: flex; justify-content: space-between; align-items: center">
+          <div>
+            <el-button type="primary" link icon="Upload" @click="openAssignImport">导入名单</el-button>
+            <el-button type="primary" @click="submitAssign" :disabled="assignState.selectedIds.length === 0">确 定</el-button>
+            <el-button @click="assignState.open = false">取 消</el-button>
+          </div>
+        </div>
+      </template>
+    </el-dialog>
+
+    <!-- 导入指定学生对话框 -->
+    <el-dialog title="导入指定学生名单" v-model="assignImportOpen" width="400px" append-to-body>
+      <el-upload
+        ref="assignImportRef"
+        v-model:file-list="assignImportFileList"
+        :limit="1"
+        accept=".xlsx, .xls"
+        :headers="assignImportUpload.headers"
+        :action="assignImportUpload.url"
+        :disabled="assignImportUploading"
+        :on-progress="() => assignImportUploading = true"
+        :on-success="handleAssignImportSuccess"
+        :on-error="() => assignImportUploading = false"
+        :auto-upload="false"
+        drag
+      >
+        <el-icon class="el-icon--upload"><upload-filled /></el-icon>
+        <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+        <template #tip>
+          <div class="el-upload__tip text-center">
+            <span>模板：学号、姓名、年级、班级。仅允许 xls、xlsx 格式。</span>
+            <el-link type="primary" style="font-size:12px" @click="downloadAssignImportTemplate">下载模板</el-link>
+          </div>
+        </template>
+      </el-upload>
+      <template #footer>
         <div class="dialog-footer">
-          <el-button type="primary" @click="submitAssign" :disabled="assignState.selectedIds.length === 0">确 定</el-button>
-          <el-button @click="assignState.open = false">取 消</el-button>
+          <el-button type="primary" @click="submitAssignImport" :disabled="assignImportUploading">确 定</el-button>
+          <el-button @click="assignImportOpen = false">取 消</el-button>
         </div>
       </template>
     </el-dialog>
@@ -355,7 +412,7 @@
 </template>
 
 <script setup name="Course">
-import { listCourse, getCourse, addCourse, updateCourse, delCourse, copyToNewSemester, listSelectedStudents, assignStudents, initSelectionData } from "@/api/course/course"
+import { listCourse, getCourse, addCourse, updateCourse, delCourse, copyToNewSemester, listSelectedStudents, listAssignedStudents, assignStudents, getAssignStudentsImportTemplatePath, initSelectionData } from "@/api/course/course"
 import { listSemesterAll, getCurrentSemester, startSelection, endSelection } from "@/api/course/semester"
 import { listGradeAll } from "@/api/course/grade"
 import { listClassByGrade } from "@/api/course/class"
@@ -369,6 +426,11 @@ const semesterList = ref([])
 const gradeList = ref([])
 const formClassList = ref([])
 const selectedStudents = ref([])
+const assignedStudents = ref([])
+const assignedStudentsOpen = ref(false)
+const assignedStudentsLoading = ref(false)
+const viewAssignedStudentsCourseId = ref(undefined)
+const viewAssignedStudentsCourseName = ref('')
 const open = ref(false)
 const copyOpen = ref(false)
 const studentsOpen = ref(false)
@@ -385,6 +447,18 @@ const batchCopyTargetSemesterId = ref(undefined)
 const batchCopyLoading = ref(false)
 const batchCopyCourseCount = ref(-1)
 const uploadRef = ref()
+const assignImportRef = ref()
+const assignImportOpen = ref(false)
+const assignImportFileList = ref([])
+const assignImportUploading = ref(false)
+const assignImportUpload = reactive({
+  headers: { Authorization: "Bearer " + getToken() },
+  get url() {
+    return assignState.course
+      ? import.meta.env.VITE_APP_BASE_API + "/course/course/" + assignState.course.id + "/assignStudents/import"
+      : ""
+  }
+})
 const assignState = reactive({
   open: false,
   course: null,
@@ -786,6 +860,20 @@ function handleViewStudents(row) {
   })
 }
 
+function handleViewAssignedStudents(row) {
+  viewAssignedStudentsCourseId.value = row.id
+  viewAssignedStudentsCourseName.value = row.courseName ?? row.course_name ?? ''
+  assignedStudents.value = []
+  assignedStudentsOpen.value = true
+  assignedStudentsLoading.value = true
+  listAssignedStudents(row.id).then(res => {
+    assignedStudents.value = res.rows || []
+    assignedStudentsLoading.value = false
+  }).catch(() => {
+    assignedStudentsLoading.value = false
+  })
+}
+
 function exportSelectedStudents() {
   if (!viewStudentsCourseId.value) return
   proxy.download("course/course/" + viewStudentsCourseId.value + "/exportSelectedStudents", {}, `选课学生_${new Date().getTime()}.xlsx`)
@@ -834,6 +922,51 @@ function submitAssign() {
     const msg = err?.response?.data?.msg || err?.message || "指定失败"
     proxy.$modal.msgError(msg)
   })
+}
+
+function openAssignImport() {
+  if (!assignState.course?.id) return
+  assignImportFileList.value = []
+  assignImportOpen.value = true
+}
+
+function downloadAssignImportTemplate() {
+  if (!assignState.course?.id) return
+  proxy.download(getAssignStudentsImportTemplatePath(assignState.course.id), {}, `指定学生导入模板_${new Date().getTime()}.xlsx`)
+}
+
+function submitAssignImport() {
+  if (!assignImportFileList.value?.length) {
+    proxy.$modal.msgWarning("请先选择文件")
+    return
+  }
+  assignImportRef.value?.submit()
+}
+
+function handleAssignImportSuccess(response) {
+  assignImportUploading.value = false
+  assignImportOpen.value = false
+  assignImportFileList.value = []
+  assignImportRef.value?.clearFiles()
+  proxy.$alert("<div style='overflow: auto;overflow-x: hidden;max-height: 70vh;padding: 10px 20px 0;'>" + (response.msg || response.data) + "</div>", "导入结果", { dangerouslyUseHTMLString: true })
+  refreshAssignData()
+}
+
+function refreshAssignData() {
+  if (!assignState.course) return
+  const gradeId = assignState.course.gradeId ?? assignState.course.grade_id
+  if (!gradeId) return
+  assignState.loading = true
+  Promise.all([
+    listStudent({ gradeId, pageNum: 1, pageSize: 2000 }),
+    listSelectedStudents(assignState.course.id),
+    listClassByGrade(gradeId)
+  ]).then(([studentRes, selectedRes]) => {
+    const all = studentRes.rows || studentRes.data || []
+    const selectedUserIds = new Set((selectedRes.rows || selectedRes.data || []).map(s => s.userId ?? s.user_id).filter(Boolean))
+    assignState.students = all.filter(s => !selectedUserIds.has(s.userId ?? s.user_id))
+    assignState.loading = false
+  }).catch(() => { assignState.loading = false })
 }
 
 // 导入模板下载

@@ -1,0 +1,11 @@
+# 构建产物
+**/target/
+**/node_modules/
+**/dist/
+**/.git/
+
+# 注意：deploy/ 需保留，供前端镜像构建使用
+
+# 其他
+*.log
+.DS_Store

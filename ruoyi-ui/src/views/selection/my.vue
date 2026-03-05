@@ -38,6 +38,12 @@
           </el-table-column>
           <el-table-column label="课程名称" align="center" prop="courseName" min-width="140" />
           <el-table-column label="教师" align="center" prop="teacherName" width="100" />
+          <el-table-column label="地点" align="center" prop="location" width="120">
+            <template #default="scope">
+              <span v-if="scope.row.location">📍 {{ scope.row.location }}</span>
+              <span v-else>-</span>
+            </template>
+          </el-table-column>
           <el-table-column label="班级" align="center" prop="className" width="100" />
           <el-table-column label="选课时间" align="center" prop="createTime" width="180">
             <template #default="scope">
@@ -76,6 +82,7 @@
                     </div>
                     <div class="course-card-body">
                       <div class="info-row"><el-icon><User /></el-icon> {{ selectionMap[day.value].teacherName }}</div>
+                      <div class="info-row" v-if="selectionMap[day.value].location"><el-icon><Location /></el-icon> {{ selectionMap[day.value].location }}</div>
                       <div class="info-row"><el-icon><School /></el-icon> {{ selectionMap[day.value].className }}</div>
                     </div>
                     <div class="course-card-footer">

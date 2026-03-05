@@ -1,6 +1,8 @@
 package com.ruoyi.system.service;
 
 import java.util.List;
+import org.springframework.web.multipart.MultipartFile;
+import com.ruoyi.common.core.domain.dto.CourseImportDTO;
 import com.ruoyi.common.core.domain.entity.CouCourse;
 import com.ruoyi.system.domain.CourseSelectedStudentVO;
 
@@ -25,6 +27,9 @@ public interface ICourseService
 
     List<CourseSelectedStudentVO> selectSelectedStudents(Long courseId);
 
+    /** 查询课程指定学生（管理员指定且已提交的） */
+    List<CourseSelectedStudentVO> selectAssignedStudents(Long courseId);
+
     /**
      * 指定学生到课程
      * @param courseId 课程ID
@@ -34,14 +39,23 @@ public interface ICourseService
     int assignStudents(Long courseId, List<Long> studentIds);
 
     /**
-     * 导入课程数据
+     * 导入指定学生名单（Excel：学号、姓名、年级、班级）
      *
-     * @param courseList 课程数据列表
+     * @param courseId 课程ID
+     * @param file Excel 文件
+     * @return 导入结果提示（成功/失败数量及详情）
+     */
+    String importAssignStudents(Long courseId, MultipartFile file);
+
+    /**
+     * 导入课程数据（含班级名额分配）
+     *
+     * @param dtoList 课程导入 DTO 列表（含 1班~5班 名额）
      * @param isUpdateSupport 是否更新支持，如果已存在，则进行更新数据
      * @param operName 操作用户
      * @return 结果
      */
-    String importCourse(List<CouCourse> courseList, Boolean isUpdateSupport, String operName);
+    String importCourse(List<CourseImportDTO> dtoList, Boolean isUpdateSupport, String operName);
 
     /**
      * 初始化指定学期的选课数据：清空所有选课记录，重置班级容量已选人数为0

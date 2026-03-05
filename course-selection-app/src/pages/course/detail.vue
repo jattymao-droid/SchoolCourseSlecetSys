@@ -179,6 +179,9 @@ async function handleAdd() {
   try {
     await cartStore.add(course.value.id)
     uni.showToast({ title: '已加入选课车 ✓', icon: 'success' })
+    // 重新请求课程详情，更新剩余名额
+    const detailRes = await getCourseDetail(course.value.id)
+    if (detailRes) course.value = detailRes
   } finally {
     adding.value = false
   }

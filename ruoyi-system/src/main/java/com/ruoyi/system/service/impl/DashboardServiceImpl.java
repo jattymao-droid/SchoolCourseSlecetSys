@@ -137,6 +137,7 @@ public class DashboardServiceImpl implements IDashboardService
             List<com.ruoyi.system.domain.MySelectionVO> selections =
                 selectionMapper.selectMySelections(userId, current.getId());
             selectionCount = selections != null ? selections.size() : 0;
+            System.out.println("Dashboard Debug: userId=" + userId + ", semesterId=" + current.getId() + ", selections=" + selectionCount);
 
             coursesToEvaluate = evaluationService.getCoursesToEvaluate(userId, current.getId());
             if (coursesToEvaluate != null)

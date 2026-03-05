@@ -150,6 +150,7 @@ async function handleAdd() {
   try {
     await cartStore.add(props.course.id)
     uni.showToast({ title: '已加入选课车', icon: 'success' })
+    emit('add', props.course.id)
   } catch {}
 }
 </script>

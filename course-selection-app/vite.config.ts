@@ -1,7 +1,9 @@
 import { defineConfig } from 'vite'
 import uni from '@dcloudio/vite-plugin-uni'
 
+// 部署到 /h5/ 子路径时设置 base，本地开发为 /
 export default defineConfig({
+  base: process.env.VITE_BASE_PATH || '/',
   plugins: [uni()],
   server: {
     port: 5173,

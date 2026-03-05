@@ -24,6 +24,9 @@ public interface CouCourseMapper
 
     List<CourseSelectedStudentVO> selectSelectedStudentsByCourseId(Long courseId);
 
+    /** 查询课程指定学生（assigned=1） */
+    List<CourseSelectedStudentVO> selectAssignedStudentsByCourseId(Long courseId);
+
     /** 热门课程（按选课人数排序，取前 N 条） */
     List<com.ruoyi.system.domain.PopularCourseVO> selectPopularCourses(@Param("semesterId") Long semesterId, @Param("limit") int limit);
 }

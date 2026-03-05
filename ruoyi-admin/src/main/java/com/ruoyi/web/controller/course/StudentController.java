@@ -106,6 +106,15 @@ public class StudentController extends BaseController
     }
 
     @PreAuthorize("@ss.hasPermi('course:student:edit')")
+    @Log(title = "重置所有学生密码", businessType = BusinessType.UPDATE)
+    @PostMapping("/resetAllPwd")
+    public AjaxResult resetAllPwd()
+    {
+        int rows = studentService.resetAllStudentPasswords();
+        return success("操作成功，共重置 " + rows + " 位学生的密码为123456");
+    }
+
+    @PreAuthorize("@ss.hasPermi('course:student:edit')")
     @Log(title = "学生管理", businessType = BusinessType.UPDATE)
     @PostMapping("/resetPwd/{userId}")
     public AjaxResult resetPwd(@PathVariable Long userId, @RequestParam(required = false) String password)

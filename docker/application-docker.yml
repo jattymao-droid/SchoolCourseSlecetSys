@@ -1,0 +1,19 @@
+# Docker 环境配置
+# 通过环境变量覆盖：POSTGRES_HOST, REDIS_HOST, PG_PASSWORD 等
+spring:
+  redis:
+    host: ${REDIS_HOST:host.docker.internal}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:}
+  datasource:
+    druid:
+      master:
+        url: jdbc:postgresql://${POSTGRES_HOST:host.docker.internal}:${POSTGRES_PORT:5432}/${POSTGRES_DB:ry_vue}?useUnicode=true&characterEncoding=utf8
+        username: ${POSTGRES_USER:postgres}
+        password: ${PG_PASSWORD:mm5621528}
+
+ruoyi:
+  profile: /app/uploadPath
+
+referer:
+  allowed-domains: localhost,127.0.0.1,xk.xmls.vip,www.xk.xmls.vip

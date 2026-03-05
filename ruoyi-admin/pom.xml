@@ -17,12 +17,14 @@
 
     <dependencies>
 
-        <!-- spring-boot-devtools -->
+        <!-- spring-boot-devtools 已排除：DevTools 的 RestartClassLoader 会导致 CourseImportDTO 等类 NoClassDefFoundError -->
+        <!--
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
-            <optional>true</optional> <!-- 表示依赖不会传递 -->
+            <optional>true</optional>
         </dependency>
+        -->
 
         <!-- swagger3-->
         <dependency>

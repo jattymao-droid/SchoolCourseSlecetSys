@@ -33,6 +33,9 @@
       <el-col :span="1.5">
         <el-button type="info" plain icon="Download" @click="handleExport" v-hasPermi="['course:student:export']">导出</el-button>
       </el-col>
+      <el-col :span="1.5">
+        <el-button type="danger" plain icon="Refresh" @click="handleResetAllPwd" v-hasPermi="['course:student:edit']">一键重置密码</el-button>
+      </el-col>
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
@@ -172,7 +175,7 @@
 
 <script setup name="Student">
 import { getToken } from "@/utils/auth"
-import { listStudent, getStudent, addStudent, updateStudent, delStudent, resetStudentPwd } from "@/api/course/student"
+import { listStudent, getStudent, addStudent, updateStudent, delStudent, resetStudentPwd, resetAllStudentPwd } from "@/api/course/student"
 import { listGradeAll } from "@/api/course/grade"
 import { listClassByGrade } from "@/api/course/class"
 import { getConfigKey } from "@/api/system/config"
@@ -398,6 +401,15 @@ function getAvatarColor(name) {
     }
   }
   return colors[Math.abs(hash) % colors.length]
+}
+
+/** 重置所有学生密码 */
+function handleResetAllPwd() {
+  proxy.$modal.confirm('是否确认重置所有学生的登录密码为 123456？此操作不可逆！').then(function() {
+    return resetAllStudentPwd();
+  }).then(response => {
+    proxy.$modal.msgSuccess(response.msg);
+  }).catch(() => {});
 }
 
 function handleExport() {

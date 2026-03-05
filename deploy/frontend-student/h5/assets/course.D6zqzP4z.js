@@ -1,0 +1,1 @@
+import{h as e}from"./_plugin-vue_export-helper.Cmy1ARUe.js";function r(){return e.get("/course/dashboard/student")}function t(){return e.get("/course/student/me")}function u(){return e.get("/course/semester/current")}function s(r){return e.get("/course/course/list",r)}function n(r){return e.get(`/course/course/${r}`)}export{s as a,t as b,u as c,n as d,r as g};

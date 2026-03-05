@@ -138,31 +138,61 @@ public class StudentServiceImpl implements IStudentService
         StringBuilder successMsg = new StringBuilder();
         StringBuilder failureMsg = new StringBuilder();
 
+        int MAX_FAILURE_MSG = 10; // Limit error message count
+
         for (StudentImportDTO dto : list)
         {
             try
             {
-                if (StringUtils.isEmpty(dto.getStudentNo()) || StringUtils.isEmpty(dto.getRealName())
-                    || StringUtils.isEmpty(dto.getGradeName()) || StringUtils.isEmpty(dto.getClassName()))
+                // Fallback for old templates
+                if (StringUtils.isEmpty(dto.getGradeName()) && StringUtils.isNotEmpty(dto.getGradeNameFallback()))
+                {
+                    dto.setGradeName(dto.getGradeNameFallback());
+                }
+                if (StringUtils.isEmpty(dto.getClassName()) && StringUtils.isNotEmpty(dto.getClassNameFallback()))
+                {
+                    dto.setClassName(dto.getClassNameFallback());
+                }
+
+                StringBuilder nullFields = new StringBuilder();
+                if (StringUtils.isEmpty(dto.getStudentNo())) nullFields.append("学号、");
+                if (StringUtils.isEmpty(dto.getRealName())) nullFields.append("姓名、");
+                if (StringUtils.isEmpty(dto.getGradeName())) nullFields.append("年级、");
+                if (StringUtils.isEmpty(dto.getClassName())) nullFields.append("班级、");
+
+                if (nullFields.length() > 0)
                 {
                     failureNum++;
-                    failureMsg.append("<br/>").append(failureNum).append("、学号 ").append(dto.getStudentNo())
-                        .append(" 导入失败：学号、姓名、年级名称、班级名称均不能为空");
+                    if (failureNum <= MAX_FAILURE_MSG) {
+                        String msg = nullFields.substring(0, nullFields.length() - 1) + " 不能为空";
+                        failureMsg.append("<br/>").append(failureNum).append("、学号 ").append(dto.getStudentNo())
+                            .append(" 导入失败：").append(msg);
+                    } else if (failureNum == MAX_FAILURE_MSG + 1) {
+                         failureMsg.append("<br/>... (更多错误已省略)");
+                    }
                     continue;
                 }
                 SysClass sysClass = classMapper.selectByGradeNameAndClassName(dto.getGradeName(), dto.getClassName());
                 if (sysClass == null)
                 {
                     failureNum++;
-                    failureMsg.append("<br/>").append(failureNum).append("、学号 ").append(dto.getStudentNo())
-                        .append(" 导入失败：未找到年级【").append(dto.getGradeName()).append("】下的班级【").append(dto.getClassName()).append("】");
+                    if (failureNum <= MAX_FAILURE_MSG) {
+                        failureMsg.append("<br/>").append(failureNum).append("、学号 ").append(dto.getStudentNo())
+                            .append(" 导入失败：未找到年级【").append(dto.getGradeName()).append("】下的班级【").append(dto.getClassName()).append("】");
+                    } else if (failureNum == MAX_FAILURE_MSG + 1) {
+                         failureMsg.append("<br/>... (更多错误已省略)");
+                    }
                     continue;
                 }
                 if (studentMapper.selectStudentByStudentNo(dto.getStudentNo()) != null
                     || userService.selectUserByUserName(dto.getStudentNo()) != null)
                 {
                     failureNum++;
-                    failureMsg.append("<br/>").append(failureNum).append("、学号 ").append(dto.getStudentNo()).append(" 已存在");
+                    if (failureNum <= MAX_FAILURE_MSG) {
+                        failureMsg.append("<br/>").append(failureNum).append("、学号 ").append(dto.getStudentNo()).append(" 已存在");
+                    } else if (failureNum == MAX_FAILURE_MSG + 1) {
+                         failureMsg.append("<br/>... (更多错误已省略)");
+                    }
                     continue;
                 }
                 StuStudentInfo student = new StuStudentInfo();
@@ -181,8 +211,12 @@ public class StudentServiceImpl implements IStudentService
             catch (Exception e)
             {
                 failureNum++;
-                failureMsg.append("<br/>").append(failureNum).append("、学号 ").append(dto.getStudentNo())
-                    .append(" 导入失败：").append(e.getMessage());
+                if (failureNum <= MAX_FAILURE_MSG) {
+                    failureMsg.append("<br/>").append(failureNum).append("、学号 ").append(dto.getStudentNo())
+                        .append(" 导入失败：").append(e.getMessage());
+                } else if (failureNum == MAX_FAILURE_MSG + 1) {
+                     failureMsg.append("<br/>... (更多错误已省略)");
+                }
                 log.error("学生导入失败", e);
             }
         }
@@ -224,6 +258,7 @@ public class StudentServiceImpl implements IStudentService
     /**
      * 根据配置生成默认密码
      * 配置规则：last6=学号后6位（不足用学号）| full=学号全文 | 其他=固定密码
+     * 默认策略：123456
      */
     private String getDefaultPassword(String studentNo)
     {
@@ -234,7 +269,8 @@ public class StudentServiceImpl implements IStudentService
         String rule = configService.selectConfigByKey(CONFIG_DEFAULT_PASSWORD);
         if (StringUtils.isEmpty(rule))
         {
-            rule = RULE_LAST6;
+            // 默认改为 123456
+            return "123456";
         }
         rule = rule.trim().toLowerCase();
         if (RULE_LAST6.equals(rule))
@@ -246,5 +282,25 @@ public class StudentServiceImpl implements IStudentService
             return studentNo;
         }
         return StringUtils.isNotEmpty(rule) ? rule : "123456";
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int resetAllStudentPasswords()
+    {
+        // 查询所有学生
+        List<StuStudentInfo> students = studentMapper.selectStudentList(new StuStudentInfo());
+        int count = 0;
+        // 统一加密一次，提高效率
+        String defaultPwd = SecurityUtils.encryptPassword("123456");
+        for (StuStudentInfo student : students)
+        {
+            if (student.getUserId() != null)
+            {
+                userService.resetUserPwd(student.getUserId(), defaultPwd);
+                count++;
+            }
+        }
+        return count;
     }
 }

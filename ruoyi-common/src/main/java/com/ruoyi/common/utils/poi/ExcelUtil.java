@@ -1379,7 +1379,7 @@ public class ExcelUtil<T>
             }
             else
             {
-                if (itemArray[1].equals(propertyValue))
+                if (itemArray[1].equals(propertyValue) || itemArray[0].equals(propertyValue))
                 {
                     return itemArray[0];
                 }
@@ -1577,7 +1577,10 @@ public class ExcelUtil<T>
         List<Field> tempFields = new ArrayList<>();
         subFieldsMap = new HashMap<>();
         subMethods = new HashMap<>();
-        tempFields.addAll(Arrays.asList(clazz.getSuperclass().getDeclaredFields()));
+        Class<?> superclass = clazz.getSuperclass();
+        if (superclass != null) {
+            tempFields.addAll(Arrays.asList(superclass.getDeclaredFields()));
+        }
         tempFields.addAll(Arrays.asList(clazz.getDeclaredFields()));
         if (StringUtils.isNotEmpty(includeFields))
         {

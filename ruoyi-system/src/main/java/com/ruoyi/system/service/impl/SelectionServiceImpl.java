@@ -1,5 +1,6 @@
 package com.ruoyi.system.service.impl;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +17,7 @@ import com.ruoyi.common.core.redis.RedisCache;
 import com.ruoyi.common.exception.ServiceException;
 import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.system.domain.CartItemVO;
+import com.ruoyi.system.domain.CourseSelectedStudentVO;
 import com.ruoyi.system.domain.MySelectionVO;
 import com.ruoyi.system.mapper.CouClassQuotaMapper;
 import com.ruoyi.system.mapper.CouCourseMapper;
@@ -93,16 +95,6 @@ public class SelectionServiceImpl implements ISelectionService {
                 }
             }
         }
-        // 指定课程不放入选课车：从 DB 查出 assigned 的 weekDay，从 result 中移除（含 Redis 中旧数据）
-        List<MySelectionVO> mySelections = selectionMapper.selectMySelections(studentId, semesterId);
-        if (mySelections != null) {
-            for (MySelectionVO s : mySelections) {
-                if (s.getWeekDay() != null && Integer.valueOf(1).equals(s.getAssigned())) {
-                    result.remove(s.getWeekDay());
-                    redisCache.deleteCacheMapValue(key, String.valueOf(s.getWeekDay()));
-                }
-            }
-        }
         return result;
     }
 
@@ -133,7 +125,7 @@ public class SelectionServiceImpl implements ISelectionService {
             throw new ServiceException("您已选过该课程");
         }
         if (selectionMapper.countByStudentSemesterWeekDay(studentId, semesterId, course.getWeekDay()) > 0) {
-            throw new ServiceException("您在该星期已有其他选课");
+            throw new ServiceException("您在该天已有其他选课，不能重复！");
         }
 
         CouClassQuota quota = quotaMapper.selectByCourseAndClass(courseId, student.getClassId());
@@ -164,6 +156,12 @@ public class SelectionServiceImpl implements ISelectionService {
         redisCache.setCacheMapValue(key, weekKey, item);
         redisCache.expire(key, CART_EXPIRE_MINUTES * 60);
 
+        int updated = quotaMapper.incrementSelectedIfAvailable(courseId, student.getClassId());
+        if (updated == 0) {
+            redisCache.deleteCacheMapValue(key, weekKey);
+            throw new ServiceException("您所在班级名额已满，请刷新后重选");
+        }
+
         return "已加入选课车";
     }
 
@@ -179,6 +177,11 @@ public class SelectionServiceImpl implements ISelectionService {
         }
         String key = cartKey(studentId, semesterId);
         String weekKey = String.valueOf(course.getWeekDay());
+        CartItemVO existing = redisCache.getCacheMapValue(key, weekKey);
+        if (existing != null && !Boolean.TRUE.equals(existing.getAssigned())
+                && existing.getCourseId() != null && existing.getClassId() != null) {
+            quotaMapper.decrementSelected(existing.getCourseId(), existing.getClassId());
+        }
         CartItemVO item = new CartItemVO();
         item.setCourseId(course.getId());
         item.setCourseName(course.getCourseName());
@@ -199,6 +202,9 @@ public class SelectionServiceImpl implements ISelectionService {
         if (item != null && Boolean.TRUE.equals(item.getAssigned())) {
             throw new ServiceException("该课程为管理员指定，不可移除");
         }
+        if (item != null && item.getCourseId() != null && item.getClassId() != null) {
+            quotaMapper.decrementSelected(item.getCourseId(), item.getClassId());
+        }
         redisCache.deleteCacheMapValue(key, String.valueOf(weekDay));
     }
 
@@ -208,7 +214,11 @@ public class SelectionServiceImpl implements ISelectionService {
         Map<String, CartItemVO> raw = redisCache.getCacheMap(key);
         if (raw != null && !raw.isEmpty()) {
             for (Map.Entry<String, CartItemVO> e : raw.entrySet()) {
-                if (!Boolean.TRUE.equals(e.getValue().getAssigned())) {
+                CartItemVO item = e.getValue();
+                if (!Boolean.TRUE.equals(item.getAssigned())) {
+                    if (item != null && item.getCourseId() != null && item.getClassId() != null) {
+                        quotaMapper.decrementSelected(item.getCourseId(), item.getClassId());
+                    }
                     redisCache.deleteCacheMapValue(key, e.getKey());
                 }
             }
@@ -257,10 +267,7 @@ public class SelectionServiceImpl implements ISelectionService {
                 if (existingByDay.containsKey(d)) {
                     continue;
                 }
-                int updated = quotaMapper.incrementSelectedIfAvailable(item.getCourseId(), item.getClassId());
-                if (updated == 0) {
-                    throw new ServiceException("课程《" + item.getCourseName() + "》您所在班级名额已满，请刷新后重选");
-                }
+                // 加入选课车时已占名额，提交时不再增加
 
                 StuSelection sel = new StuSelection();
                 sel.setStudentId(studentId);
@@ -269,10 +276,12 @@ public class SelectionServiceImpl implements ISelectionService {
                 sel.setWeekDay(d);
                 sel.setClassId(item.getClassId());
                 sel.setStatus(1);
+                sel.setAssigned(Boolean.TRUE.equals(item.getAssigned()) ? 1 : 0);
                 selectionMapper.insertSelection(sel);
             }
 
-            clearCart(studentId, semesterId);
+            // 提交成功后清空整个选课车（含管理员指定的课程）
+            redisCache.deleteObject(cartKey(studentId, semesterId));
             return "选课成功";
         } finally {
             redisCache.deleteObject(lockKey);
@@ -404,6 +413,43 @@ public class SelectionServiceImpl implements ISelectionService {
             if (q.getClassId() != null && q.getQuota() != null && q.getSelected() != null) {
                 int remain = Math.max(0, q.getQuota() - q.getSelected());
                 result.put(q.getClassId(), remain);
+            }
+        }
+        return result;
+    }
+
+    @Override
+    public List<CourseSelectedStudentVO> listAssignedStudentsInCart(Long courseId, Long semesterId) {
+        List<CourseSelectedStudentVO> result = new ArrayList<>();
+        String pattern = CacheConstants.SELECTION_CART_KEY + "*:" + semesterId;
+        java.util.Collection<String> keys = redisCache.keys(pattern);
+        if (keys == null || keys.isEmpty()) {
+            return result;
+        }
+        for (String key : keys) {
+            String[] parts = key.split(":");
+            if (parts.length < 3) continue;
+            try {
+                Long studentId = Long.parseLong(parts[1]);
+                Map<String, CartItemVO> raw = redisCache.getCacheMap(key);
+                if (raw == null || raw.isEmpty()) continue;
+                for (CartItemVO item : raw.values()) {
+                    if (item != null && courseId.equals(item.getCourseId())
+                            && Boolean.TRUE.equals(item.getAssigned())) {
+                        StuStudentInfo student = studentMapper.selectStudentByUserId(studentId);
+                        if (student != null) {
+                            CourseSelectedStudentVO vo = new CourseSelectedStudentVO();
+                            vo.setUserId(studentId);
+                            vo.setStudentNo(student.getStudentNo());
+                            vo.setRealName(student.getRealName());
+                            vo.setClassName(student.getClassName());
+                            vo.setCreateTime(null);
+                            result.add(vo);
+                        }
+                        break;
+                    }
+                }
+            } catch (NumberFormatException ignored) {
             }
         }
         return result;

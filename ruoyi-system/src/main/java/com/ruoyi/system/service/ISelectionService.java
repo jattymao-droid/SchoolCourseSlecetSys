@@ -3,6 +3,7 @@ package com.ruoyi.system.service;
 import java.util.List;
 import java.util.Map;
 import com.ruoyi.system.domain.CartItemVO;
+import com.ruoyi.system.domain.CourseSelectedStudentVO;
 import com.ruoyi.system.domain.MySelectionVO;
 
 /**
@@ -91,4 +92,13 @@ public interface ISelectionService
      * @return 班级ID -> 剩余名额
      */
     Map<Long, Integer> getRemainingQuota(Long courseId);
+
+    /**
+     * 从选课车中查询指定课程的指定学生（assigned=true，尚未提交）
+     *
+     * @param courseId 课程ID
+     * @param semesterId 学期ID
+     * @return 指定学生列表
+     */
+    List<CourseSelectedStudentVO> listAssignedStudentsInCart(Long courseId, Long semesterId);
 }

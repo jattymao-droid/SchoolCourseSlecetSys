@@ -1,0 +1,46 @@
+# 东陆高中选课系统 - Docker Compose
+# 在 deploy 目录下执行: docker compose -f docker/docker-compose.yml up -d --build
+
+services:
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.backend
+    image: xk-backend:latest
+    container_name: xk-backend
+    environment:
+      POSTGRES_HOST: ${POSTGRES_HOST:-host.docker.internal}
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+      POSTGRES_DB: ${POSTGRES_DB:-ry_vue}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      PG_PASSWORD: ${PG_PASSWORD:-mm5621528}
+      REDIS_HOST: ${REDIS_HOST:-host.docker.internal}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+    volumes:
+      - upload_data:/app/uploadPath
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 90s
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.frontend
+    image: xk-frontend:latest
+    container_name: xk-frontend
+    ports:
+      - "${FRONTEND_PORT:-9090}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  upload_data:

@@ -1,0 +1,11 @@
+# 东陆高中选课系统 - 前端镜像
+# 构建上下文: deploy 目录
+
+FROM nginx:alpine
+RUN rm -rf /usr/share/nginx/html/*
+
+COPY frontend-admin/dist/ /usr/share/nginx/html/
+COPY frontend-student/h5/ /usr/share/nginx/html/h5/
+COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
+
+EXPOSE 80

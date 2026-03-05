@@ -24,7 +24,9 @@ import com.ruoyi.common.core.domain.entity.CouCourse;
 import com.ruoyi.common.core.page.TableDataInfo;
 import com.ruoyi.common.enums.BusinessType;
 import com.ruoyi.common.utils.poi.ExcelUtil;
+import com.ruoyi.common.core.domain.dto.CourseImportDTO;
 import com.ruoyi.system.domain.AssignStudentsDTO;
+import com.ruoyi.system.domain.AssignStudentsImportDTO;
 import com.ruoyi.system.domain.CourseSelectedStudentVO;
 import com.ruoyi.system.service.ICourseService;
 
@@ -120,11 +122,35 @@ public class CourseController extends BaseController
         }
     }
 
+    @PreAuthorize("@ss.hasPermi('course:course:edit')")
+    @Log(title = "课程管理", businessType = BusinessType.IMPORT)
+    @PostMapping("/{id}/assignStudents/import")
+    public AjaxResult assignStudentsImport(@PathVariable("id") Long id, MultipartFile file) throws Exception
+    {
+        String message = courseService.importAssignStudents(id, file);
+        return success(message);
+    }
+
+    @PostMapping("/{id}/assignStudents/importTemplate")
+    public void assignStudentsImportTemplate(@PathVariable("id") Long id, HttpServletResponse response)
+    {
+        ExcelUtil<AssignStudentsImportDTO> util = new ExcelUtil<>(AssignStudentsImportDTO.class);
+        util.importTemplateExcel(response, "指定学生名单");
+    }
+
     @PreAuthorize("@ss.hasPermi('course:course:query')")
     @GetMapping("/{id}/selectedStudents")
     public TableDataInfo selectedStudents(@PathVariable Long id)
     {
         List<CourseSelectedStudentVO> list = courseService.selectSelectedStudents(id);
+        return getDataTable(list);
+    }
+
+    @PreAuthorize("@ss.hasPermi('course:course:query')")
+    @GetMapping("/{id}/assignedStudents")
+    public TableDataInfo assignedStudents(@PathVariable Long id)
+    {
+        List<CourseSelectedStudentVO> list = courseService.selectAssignedStudents(id);
         return getDataTable(list);
     }
 
@@ -153,17 +179,17 @@ public class CourseController extends BaseController
     @PostMapping("/importData")
     public AjaxResult importData(MultipartFile file, boolean updateSupport) throws Exception
     {
-        ExcelUtil<CouCourse> util = new ExcelUtil<CouCourse>(CouCourse.class);
-        List<CouCourse> courseList = util.importExcel(file.getInputStream());
+        ExcelUtil<CourseImportDTO> util = new ExcelUtil<>(CourseImportDTO.class);
+        List<CourseImportDTO> dtoList = util.importExcel(file.getInputStream());
         String operName = getUsername();
-        String message = courseService.importCourse(courseList, updateSupport, operName);
+        String message = courseService.importCourse(dtoList, updateSupport, operName);
         return success(message);
     }
 
     @PostMapping("/importTemplate")
     public void importTemplate(HttpServletResponse response)
     {
-        ExcelUtil<CouCourse> util = new ExcelUtil<CouCourse>(CouCourse.class);
+        ExcelUtil<CourseImportDTO> util = new ExcelUtil<>(CourseImportDTO.class);
         util.importTemplateExcel(response, "课程数据");
     }
 

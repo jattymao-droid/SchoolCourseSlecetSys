@@ -39,24 +39,24 @@
 
             <el-row :gutter="10" class="mb8">
               <el-col :span="1.5">
-                <el-button type="success" plain icon="Plus" @click="handleAdd" v-hasPermi="['system:user:add']">新增</el-button>
+                <el-button type="success" plain icon="Plus" size="large" @click="handleAdd" v-hasPermi="['system:user:add']">新增</el-button>
               </el-col>
               <el-col :span="1.5">
-                <el-button type="warning" plain icon="Edit" :disabled="single" @click="handleUpdate" v-hasPermi="['system:user:edit']">修改</el-button>
+                <el-button type="warning" plain icon="Edit" size="large" :disabled="single" @click="handleUpdate" v-hasPermi="['system:user:edit']">修改</el-button>
               </el-col>
               <el-col :span="1.5">
-                <el-button type="danger" plain icon="Delete" :disabled="multiple" @click="handleDelete" v-hasPermi="['system:user:remove']">删除</el-button>
+                <el-button type="danger" plain icon="Delete" size="large" :disabled="multiple" @click="handleDelete" v-hasPermi="['system:user:remove']">删除</el-button>
               </el-col>
               <el-col :span="1.5">
-                <el-button type="info" plain icon="Upload" @click="handleImport" v-hasPermi="['system:user:import']">导入</el-button>
+                <el-button type="info" plain icon="Upload" size="large" @click="handleImport" v-hasPermi="['system:user:import']">导入</el-button>
               </el-col>
               <el-col :span="1.5">
-                <el-button type="info" plain icon="Download" @click="handleExport" v-hasPermi="['system:user:export']">导出</el-button>
+                <el-button type="info" plain icon="Download" size="large" @click="handleExport" v-hasPermi="['system:user:export']">导出</el-button>
               </el-col>
               <right-toolbar v-model:showSearch="showSearch" @queryTable="getList" :columns="columns"></right-toolbar>
             </el-row>
 
-            <el-table v-loading="loading" :data="userList" @selection-change="handleSelectionChange">
+            <el-table v-loading="loading" :data="userList" @selection-change="handleSelectionChange" class="user-table" :row-style="{ height: '45px' }" :cell-style="{ padding: '0' }">
               <el-table-column type="selection" width="50" align="center" />
               <el-table-column label="用户编号" align="center" key="userId" prop="userId" v-if="columns.userId.visible" />
               <el-table-column label="用户名称" align="center" key="userName" prop="userName" v-if="columns.userName.visible" :show-overflow-tooltip="true" />
@@ -78,7 +78,7 @@
                   <span>{{ parseTime(scope.row.createTime) }}</span>
                 </template>
               </el-table-column>
-              <el-table-column label="操作" align="center" width="150" class-name="small-padding fixed-width">
+              <el-table-column label="操作" align="center" width="160" class-name="small-padding fixed-width">
                 <template #default="scope">
                   <el-tooltip content="修改" placement="top" v-if="scope.row.userId !== 1">
                     <el-button link type="warning" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['system:user:edit']"></el-button>
@@ -557,3 +557,43 @@ onMounted(() => {
   })
 })
 </script>
+
+<style lang="scss" scoped>
+.user-table {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+
+  :deep(th.el-table__cell) {
+    background-color: #f8fafc !important;
+    color: #1e293b;
+    font-weight: 700;
+    height: 50px !important;
+  }
+
+  :deep(.el-table__row) {
+    transition: all 0.3s ease;
+    &:hover > td.el-table__cell {
+      background-color: #f1f5f9 !important;
+    }
+  }
+}
+
+.head-container {
+  background: #fff;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 15px;
+}
+
+:deep(.splitpanes--vertical > .splitpanes__splitter) {
+  width: 10px;
+  background-color: #f1f5f9;
+  border-left: 1px solid #e2e8f0;
+  border-right: 1px solid #e2e8f0;
+  &:hover {
+    background-color: #e2e8f0;
+  }
+}
+</style>
