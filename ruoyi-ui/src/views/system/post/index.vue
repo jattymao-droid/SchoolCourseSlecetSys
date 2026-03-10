@@ -1,39 +1,35 @@
-﻿<template>
+<template>
    <div class="app-container">
-      <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch">
-         <el-form-item label="岗位编码" prop="postCode">
-            <el-input
-               v-model="queryParams.postCode"
-               placeholder="请输入岗位编码"
-               clearable
-               style="width: 200px"
-               @keyup.enter="handleQuery"
-            />
-         </el-form-item>
-         <el-form-item label="岗位名称" prop="postName">
-            <el-input
-               v-model="queryParams.postName"
-               placeholder="请输入岗位名称"
-               clearable
-               style="width: 200px"
-               @keyup.enter="handleQuery"
-            />
-         </el-form-item>
-         <el-form-item label="状态" prop="status">
-            <el-select v-model="queryParams.status" placeholder="岗位状态" clearable style="width: 200px">
-               <el-option
-                  v-for="dict in sys_normal_disable"
-                  :key="dict.value"
-                  :label="dict.label"
-                  :value="dict.value"
-               />
-            </el-select>
-         </el-form-item>
-         <el-form-item>
-            <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
-            <el-button icon="Refresh" @click="resetQuery">重置</el-button>
-         </el-form-item>
-      </el-form>
+      <!-- 搜索区域 -->
+      <el-card v-show="showSearch" class="search-card" shadow="never">
+         <el-form :model="queryParams" ref="queryRef" class="search-form" label-width="82px">
+            <el-row :gutter="16">
+               <el-col :xs="24" :sm="12" :md="8" :lg="6">
+                  <el-form-item label="岗位编码" prop="postCode">
+                     <el-input v-model="queryParams.postCode" placeholder="请输入岗位编码" clearable @keyup.enter="handleQuery" />
+                  </el-form-item>
+               </el-col>
+               <el-col :xs="24" :sm="12" :md="8" :lg="6">
+                  <el-form-item label="岗位名称" prop="postName">
+                     <el-input v-model="queryParams.postName" placeholder="请输入岗位名称" clearable @keyup.enter="handleQuery" />
+                  </el-form-item>
+               </el-col>
+               <el-col :xs="24" :sm="12" :md="8" :lg="6">
+                  <el-form-item label="状态" prop="status">
+                     <el-select v-model="queryParams.status" placeholder="岗位状态" clearable style="width: 100%">
+                        <el-option v-for="dict in sys_normal_disable" :key="dict.value" :label="dict.label" :value="dict.value" />
+                     </el-select>
+                  </el-form-item>
+               </el-col>
+            </el-row>
+            <el-row>
+               <el-col :span="24" class="search-actions">
+                  <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+                  <el-button icon="Refresh" @click="resetQuery">重置</el-button>
+               </el-col>
+            </el-row>
+         </el-form>
+      </el-card>
 
       <el-row :gutter="10" class="mb8">
          <el-col :span="1.5">
@@ -116,7 +112,7 @@
                <el-input v-model="form.postName" placeholder="请输入岗位名称" />
             </el-form-item>
             <el-form-item label="岗位编码" prop="postCode">
-               <el-input v-model="form.postCode" placeholder="请输入编码名称" />
+               <el-input v-model="form.postCode" placeholder="请输入岗位编码" />
             </el-form-item>
             <el-form-item label="岗位顺序" prop="postSort">
                <el-input-number v-model="form.postSort" controls-position="right" :min="0" />
@@ -136,8 +132,8 @@
          </el-form>
          <template #footer>
             <div class="dialog-footer">
-               <el-button type="primary" @click="submitForm">确 定</el-button>
-               <el-button @click="cancel">取 消</el-button>
+               <el-button type="primary" @click="submitForm">确定</el-button>
+               <el-button @click="cancel">取消</el-button>
             </div>
          </template>
       </el-dialog>
@@ -268,7 +264,7 @@ function submitForm() {
 /** 删除按钮操作 */
 function handleDelete(row) {
   const postIds = row.postId || ids.value
-  proxy.$modal.confirm('是否确认删除岗位编号为"' + postIds + '"的数据项？').then(function() {
+  proxy.$modal.confirm('是否确认删除岗位编号为"' + postIds + '"的数据项?').then(function() {
     return delPost(postIds)
   }).then(() => {
     getList()
@@ -285,3 +281,19 @@ function handleExport() {
 
 getList()
 </script>
+
+<style lang="scss" scoped>
+.search-card {
+  margin-bottom: 16px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  :deep(.el-card__body) { padding: 18px 20px 14px; }
+}
+.search-form :deep(.el-form-item) { margin-bottom: 14px; }
+.search-form :deep(.el-input),
+.search-form :deep(.el-date-editor) { width: 100%; }
+.search-actions {
+  display: flex; justify-content: flex-end; align-items: center; padding-top: 4px; margin-bottom: 0;
+  .el-button { margin-left: 10px; }
+}
+</style>

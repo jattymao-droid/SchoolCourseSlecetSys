@@ -12,7 +12,7 @@
     </div>
 
     <!-- 统计卡片 -->
-    <el-row v-if="assessmentList.length > 0" :gutter="16" class="stats-row">
+    <el-row v-show="assessmentList.length > 0" :gutter="16" class="stats-row">
       <el-col :xs="12" :sm="8" :md="6">
         <div class="stat-card">
           <div class="stat-value">{{ assessmentList.length }}</div>
@@ -33,11 +33,45 @@
       </el-col>
     </el-row>
 
+    <!-- 得分分析：区间统计 + 分布图 -->
+    <el-row v-show="assessmentList.length > 0" :gutter="16" class="analysis-row">
+      <el-col :xs="24" :md="10">
+        <el-card class="analysis-card" shadow="never">
+          <template #header>
+            <span class="card-title">得分区间分布</span>
+          </template>
+          <div class="score-distribution">
+            <div class="dist-item" v-for="(item, idx) in scoreDistribution" :key="idx">
+              <span class="dist-label">
+                <el-tag :type="item.tagType" size="small" effect="plain">{{ item.label }}</el-tag>
+                <span class="dist-desc">{{ item.desc }}</span>
+              </span>
+              <span class="dist-value">{{ item.count }} 人</span>
+              <el-progress
+                :percentage="scoreDistributionPercent(item.count)"
+                :color="item.color"
+                :stroke-width="10"
+                style="margin-top: 6px; max-width: 200px;"
+              />
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+      <el-col :xs="24" :md="14">
+        <el-card class="analysis-card chart-card" shadow="never">
+          <template #header>
+            <span class="card-title">得分分布图</span>
+          </template>
+          <div ref="chartRef" class="score-chart"></div>
+        </el-card>
+      </el-col>
+    </el-row>
+
     <!-- 搜索区 -->
     <el-card v-show="showSearch" class="search-card" shadow="never">
       <el-form :model="queryParams" ref="queryRef" :inline="true" label-width="88px">
         <el-form-item label="学期" prop="semesterId">
-          <el-select v-model="queryParams.semesterId" placeholder="请选择学期" clearable style="width: 200px">
+          <el-select v-model="queryParams.semesterId" placeholder="请选择学期" clearable style="width: 200px" @change="handleQuery">
             <el-option v-for="s in semesterList" :key="s.id" :label="s.semesterName" :value="s.id" />
           </el-select>
         </el-form-item>
@@ -53,7 +87,6 @@
         <el-button
           type="warning"
           plain
-          size="large"
           icon="Download"
           @click="handleExport"
           v-hasPermi="['course:teacherAssessment:export']"
@@ -63,7 +96,6 @@
         <el-button
           type="danger"
           plain
-          size="large"
           icon="RefreshRight"
           @click="handleInitAssessmentData"
           v-hasPermi="['course:teacherAssessment:edit']"
@@ -73,59 +105,75 @@
     </el-row>
 
     <el-card class="table-card" shadow="never">
-    <el-table v-loading="loading" :data="assessmentList" border stripe class="assessment-table">
-      <el-table-column label="教师姓名" align="center" prop="teacherName" min-width="120" show-overflow-tooltip>
-        <template #default="scope">
-          <div class="teacher-name-cell">
-            <el-avatar :size="28" :style="{ backgroundColor: getAvatarColor(scope.row.teacherName) }">
-              {{ (scope.row.teacherName || '教').charAt(0) }}
-            </el-avatar>
-            <span>{{ scope.row.teacherName || '-' }}</span>
-          </div>
-        </template>
-      </el-table-column>
-      <el-table-column label="学期" align="center" prop="semesterName" min-width="180">
-        <template #default="scope">
-          <el-tag type="warning" effect="plain" size="small">{{ scope.row.semesterName }}</el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column label="平均得分" align="center" prop="avgScore" width="90">
-        <template #default="scope">
-          <el-tag :type="getScoreTagType(scope.row.avgScore)" effect="dark">
-            {{ scope.row.avgScore != null ? scope.row.avgScore : '-' }}
-          </el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column label="评价人次" align="center" prop="evalCount" width="100">
-        <template #default="scope">
-          <span class="num-cell"><el-icon><ChatDotRound /></el-icon> {{ scope.row.evalCount ?? 0 }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="授课门数" align="center" prop="courseCount" width="100">
-        <template #default="scope">
-          <span class="num-cell"><el-icon><Reading /></el-icon> {{ scope.row.courseCount ?? 0 }}</span>
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" align="center" width="180" class-name="small-padding fixed-width">
-        <template #default="scope">
-          <el-button
-            link
-            type="primary"
-            icon="View"
-            @click="handleViewDetail(scope.row)"
-            v-hasPermi="['course:teacherAssessment:query']"
-          >评价详情</el-button>
-          <el-button
-            v-if="scope.row.teacherId"
-            link
-            type="danger"
-            icon="Delete"
-            @click="handleDelete(scope.row)"
-            v-hasPermi="['course:teacherAssessment:remove']"
-          >删除</el-button>
-        </template>
-      </el-table-column>
-    </el-table>
+      <el-table v-loading="loading" :data="paginatedList" border stripe class="assessment-table" default-sort="{ prop: 'avgScore', order: 'descending' }">
+        <el-table-column label="排名" align="center" width="72" class-name="rank-cell">
+          <template #default="scope">
+            <el-tag v-if="getRank(scope.$index) <= 3" :type="getRank(scope.$index) === 1 ? 'danger' : getRank(scope.$index) === 2 ? 'warning' : 'success'" effect="dark" size="small">
+              {{ getRank(scope.$index) }}
+            </el-tag>
+            <span v-else class="rank-num">{{ getRank(scope.$index) }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="教师姓名" align="center" prop="teacherName" min-width="120" show-overflow-tooltip>
+          <template #default="scope">
+            <div class="teacher-name-cell">
+              <el-avatar :size="28" :style="{ backgroundColor: getAvatarColor(scope.row.teacherName) }">
+                {{ (scope.row.teacherName || '教').charAt(0) }}
+              </el-avatar>
+              <span>{{ scope.row.teacherName || '-' }}</span>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="学期" align="center" prop="semesterName" min-width="180">
+          <template #default="scope">
+            <el-tag type="warning" effect="plain" size="small">{{ scope.row.semesterName }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="平均得分" align="center" prop="avgScore" width="90">
+          <template #default="scope">
+            <el-tag :type="getScoreTagType(scope.row.avgScore)" effect="dark">
+              {{ scope.row.avgScore != null ? scope.row.avgScore : '-' }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="评价人次" align="center" prop="evalCount" width="100">
+          <template #default="scope">
+            <span class="num-cell"><el-icon><ChatDotRound /></el-icon> {{ scope.row.evalCount ?? 0 }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="授课门数" align="center" prop="courseCount" width="100">
+          <template #default="scope">
+            <span class="num-cell"><el-icon><Reading /></el-icon> {{ scope.row.courseCount ?? 0 }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" align="center" width="180" class-name="small-padding fixed-width">
+          <template #default="scope">
+            <el-button
+              link
+              type="primary"
+              icon="View"
+              @click="handleViewDetail(scope.row)"
+              v-hasPermi="['course:teacherAssessment:query']"
+            >评价详情</el-button>
+            <el-button
+              v-if="scope.row.teacherId"
+              link
+              type="danger"
+              icon="Delete"
+              @click="handleDelete(scope.row)"
+              v-hasPermi="['course:teacherAssessment:remove']"
+            >删除</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <pagination
+        v-show="total > 0"
+        :total="total"
+        v-model:page="queryParams.pageNum"
+        v-model:limit="queryParams.pageSize"
+        :page-sizes="[10, 20, 50, 100]"
+        @pagination="() => {}"
+      />
     </el-card>
 
     <el-empty v-if="!loading && assessmentList.length === 0" class="empty-state" description="暂无考核数据，请先让学生完成课程评价">
@@ -170,7 +218,9 @@
 </template>
 
 <script setup name="TeacherAssessment">
+import { ref, reactive, computed, toRefs, getCurrentInstance, onMounted, onActivated, watch, onBeforeUnmount } from 'vue'
 import { TrendCharts, ChatDotRound, Reading } from '@element-plus/icons-vue'
+import * as echarts from 'echarts'
 import { listTeacherAssessment, getTeacherEvaluationDetail, initAssessmentData, deleteTeacherAssessment } from '@/api/course/teacherAssessment'
 import { listSemesterAll, getCurrentSemester } from '@/api/course/semester'
 import { parseTime } from '@/utils/ruoyi'
@@ -185,14 +235,19 @@ const detailOpen = ref(false)
 const detailLoading = ref(false)
 const detailList = ref([])
 const detailTeacherName = ref('')
+const chartRef = ref(null)
+let chartInstance = null
 
 const data = reactive({
   queryParams: {
-    semesterId: undefined
+    semesterId: undefined,
+    pageNum: 1,
+    pageSize: 10
   }
 })
 
-const queryParams = computed(() => data.queryParams)
+const { queryParams } = toRefs(data)
+const total = ref(0)
 
 /** 平均得分 */
 const avgScoreDisplay = computed(() => {
@@ -207,17 +262,62 @@ const totalEvalCount = computed(() => {
   return assessmentList.value.reduce((a, r) => a + (r.evalCount ?? 0), 0)
 })
 
+/** 按平均得分降序排序后的列表 */
+const sortedAssessmentList = computed(() => {
+  const list = [...assessmentList.value]
+  return list.sort((a, b) => (b.avgScore ?? 0) - (a.avgScore ?? 0))
+})
+
+/** 当前页的列表（分页切片），排名 = (pageNum-1)*pageSize + 行号 */
+const paginatedList = computed(() => {
+  const list = sortedAssessmentList.value
+  const { pageNum, pageSize } = queryParams.value
+  const start = (pageNum - 1) * pageSize
+  return list.slice(start, start + pageSize)
+})
+
+/** 当前页某行的全局排名 */
+function getRank(index) {
+  const { pageNum, pageSize } = queryParams.value
+  return (pageNum - 1) * pageSize + index + 1
+}
+
+/** 得分区间分布：优秀≥9、良好7-9、及格5-7、待提升<5 */
+const scoreDistribution = computed(() => {
+  const list = assessmentList.value
+  const excellent = list.filter(r => (r.avgScore ?? 0) >= 9).length
+  const good = list.filter(r => { const s = r.avgScore ?? 0; return s >= 7 && s < 9; }).length
+  const pass = list.filter(r => { const s = r.avgScore ?? 0; return s >= 5 && s < 7; }).length
+  const improve = list.filter(r => (r.avgScore ?? 0) < 5).length
+  const total = list.length || 1
+  return [
+    { label: '优秀', desc: '≥9分', count: excellent, tagType: 'success', color: '#10B981' },
+    { label: '良好', desc: '7~9分', count: good, tagType: 'primary', color: '#3B82F6' },
+    { label: '及格', desc: '5~7分', count: pass, tagType: 'warning', color: '#F59E0B' },
+    { label: '待提升', desc: '<5分', count: improve, tagType: 'danger', color: '#EF4444' }
+  ]
+})
+
+function scoreDistributionPercent(count) {
+  const total = assessmentList.value.length || 1
+  return Math.round((count / total) * 100)
+}
+
 function getList() {
   loading.value = true
   const semesterId = queryParams.value.semesterId || null
   listTeacherAssessment(semesterId)
     .then(res => {
-      // 兼容 data、rows 或直接数组
-      const list = res?.data ?? res?.rows ?? res
-      assessmentList.value = Array.isArray(list) ? list : []
+      // 兼容 AjaxResult.data、rows 或直接数组
+      const raw = res?.data ?? res?.rows ?? res
+      const list = Array.isArray(raw) ? raw : (raw && Array.isArray(raw.list) ? raw.list : [])
+      assessmentList.value = list
+      total.value = list.length
     })
-    .catch(() => {
+    .catch(err => {
+      console.error('获取教师考核列表失败:', err)
       assessmentList.value = []
+      total.value = 0
     })
     .finally(() => {
       loading.value = false
@@ -253,11 +353,13 @@ function getScoreTagType(score) {
 }
 
 function handleQuery() {
+  data.queryParams.pageNum = 1
   getList()
 }
 
 function resetQuery() {
   data.queryParams.semesterId = undefined
+  data.queryParams.pageNum = 1
   handleQuery()
 }
 
@@ -268,7 +370,8 @@ function handleViewDetail(row) {
   detailLoading.value = true
   getTeacherEvaluationDetail(row.teacherId, row.teacherName, row.semesterId)
     .then(res => {
-      detailList.value = res.data || []
+      const raw = res?.data ?? res?.rows ?? res
+      detailList.value = Array.isArray(raw) ? raw : []
     })
     .finally(() => {
       detailLoading.value = false
@@ -338,16 +441,58 @@ function loadPageData() {
   loadSemesters()
     .then(() => initDefaultSemester())
     .then(() => getList())
-    .catch(() => getList()) // 任一环节失败也执行 getList
+    .catch(() => {
+      getList()
+    })
 }
 
+function initChart() {
+  if (!chartRef.value || assessmentList.value.length === 0) return
+  if (chartInstance) chartInstance.dispose()
+  chartInstance = echarts.init(chartRef.value)
+  const dist = scoreDistribution.value
+  const option = {
+    tooltip: { trigger: 'item' },
+    legend: { bottom: 0, left: 'center' },
+    color: dist.map(d => d.color),
+    series: [{
+      type: 'pie',
+      radius: ['40%', '70%'],
+      center: ['50%', '45%'],
+      avoidLabelOverlap: false,
+      itemStyle: { borderRadius: 6 },
+      label: { show: true, formatter: '{b}: {c}人 ({d}%)' },
+      data: dist.map(d => ({ name: d.label + ' ' + d.desc, value: d.count }))
+    }]
+  }
+  chartInstance.setOption(option)
+}
+
+watch(assessmentList, () => {
+  if (assessmentList.value.length > 0) {
+    setTimeout(() => initChart(), 100)
+  } else if (chartInstance) {
+    chartInstance.clear()
+  }
+}, { deep: true })
+
 onMounted(() => {
-  nextTick(() => loadPageData())
+  loadPageData()
 })
 
-// 页面激活时重新加载（解决 keep-alive 缓存后切换回来内容不刷新的问题）
 onActivated(() => {
-  loadPageData()
+  if (semesterList.value.length === 0) {
+    loadPageData()
+  } else {
+    getList()
+  }
+})
+
+onBeforeUnmount(() => {
+  if (chartInstance) {
+    chartInstance.dispose()
+    chartInstance = null
+  }
 })
 </script>
 
@@ -414,6 +559,48 @@ onActivated(() => {
   color: #64748b;
   margin-top: 4px;
 }
+
+/* 分析区 */
+.analysis-row {
+  margin-bottom: 20px;
+}
+.analysis-card {
+  border-radius: 10px;
+  :deep(.el-card__header) {
+    padding: 12px 16px;
+    font-weight: 600;
+    color: #334155;
+  }
+  :deep(.el-card__body) { padding: 16px; }
+}
+.card-title { font-size: 14px; }
+.score-distribution {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.dist-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.dist-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+.dist-desc { font-size: 12px; color: #64748b; }
+.dist-value { font-size: 13px; font-weight: 600; color: #475569; }
+.score-chart {
+  width: 100%;
+  height: 260px;
+}
+.chart-card .el-card__body { padding: 8px; }
+
+/* 表格排名列 */
+.rank-cell { font-weight: 600; }
+.rank-num { font-size: 14px; color: #64748b; }
 
 /* 搜索卡片 */
 .search-card {

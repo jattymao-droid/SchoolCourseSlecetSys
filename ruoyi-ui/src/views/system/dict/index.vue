@@ -1,4 +1,4 @@
-﻿<template>
+<template>
    <div class="app-container">
       <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
          <el-form-item label="字典名称" prop="dictName">
@@ -304,7 +304,7 @@ function submitForm() {
 /** 删除按钮操作 */
 function handleDelete(row) {
   const dictIds = row.dictId || ids.value
-  proxy.$modal.confirm('是否确认删除字典编号为"' + dictIds + '"的数据项？').then(function() {
+  proxy.$modal.confirm('是否确认删除字典编号为"' + dictIds + '"的数据项?').then(function() {
     return delType(dictIds)
   }).then(() => {
     getList()

@@ -161,8 +161,8 @@
       </el-form>
       <template #footer>
         <div class="dialog-footer">
-          <el-button type="primary" @click="submitForm">确 定</el-button>
-          <el-button @click="cancel">取 消</el-button>
+          <el-button type="primary" @click="submitForm">确定</el-button>
+          <el-button @click="cancel">取消</el-button>
         </div>
       </template>
     </el-dialog>
@@ -301,7 +301,7 @@ getList()
 </script>
 
 <style scoped lang="scss">
-// ── 查询区域卡片化 ────────────────────────────────────
+// ── æ¥è¯¢åºåå¡çå?────────────────────────────────────
 :deep(.el-form.el-form--inline) {
   background: #fff;
   border: 1px solid #dde6ff;
@@ -350,7 +350,7 @@ getList()
   }
 }
 
-// ── 学期名称列样式 ────────────────────────────────────
+// ── å­¦æåç§°åæ ·å¼?────────────────────────────────────
 .semester-name-cell {
   display: flex;
   align-items: center;
@@ -366,20 +366,20 @@ getList()
   }
 }
 
-// ── 日期列样式 ────────────────────────────────────────
+// ── æ¥æåæ ·å¼?────────────────────────────────────────
 .date-cell {
   color: #64748B;
   font-family: 'Segoe UI', sans-serif;
   font-size: 13px;
 }
 
-// ── 时间列样式 ────────────────────────────────────────
+// ── æ¶é´åæ ·å¼?────────────────────────────────────────
 .time-cell {
   color: #64748B;
   font-size: 12px;
 }
 
-// ── 操作按钮组 ────────────────────────────────────────
+// ── æä½æé®ç»?────────────────────────────────────────
 .action-buttons {
   display: flex;
   justify-content: center;
@@ -398,9 +398,9 @@ getList()
   }
 }
 
-// ── 当前学期行高亮与按钮色 ────────────────────────────
+// ── å½åå­¦æè¡é«äº®ä¸æé®è?────────────────────────────
 :deep(.el-table) {
-  // 设为当前 / 修改 / 删除 按钮色
+  // 设为当前 / 修改 / 删除 æé®è?
   .el-button[type=success][icon=Check] { color: #10B981 !important; }
   .el-button[type=primary][icon=Edit]   { color: #3B82F6 !important; }
   .el-button[type=danger][icon=Delete] { color: #EF4444 !important; }

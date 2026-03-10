@@ -40,7 +40,9 @@ const usePermissionStore = defineStore(
             const rdata = JSON.parse(JSON.stringify(res.data))
             const defaultData = JSON.parse(JSON.stringify(res.data))
             const sidebarRoutes = filterAsyncRouter(sdata)
-            const rewriteRoutes = filterAsyncRouter(rdata, false, true)
+            let rewriteRoutes = filterAsyncRouter(rdata, false, true)
+            // 去掉后端返回的「教师考核」路由，避免其覆盖常驻路由导致点击菜单空白（只依赖 router 中的常驻路由）
+            rewriteRoutes = stripTeacherAssessmentFromBackendRoutes(rewriteRoutes)
             const defaultRoutes = filterAsyncRouter(defaultData)
             const asyncRoutes = filterDynamicRoutes(dynamicRoutes)
             asyncRoutes.forEach(route => { router.addRoute(route) })
@@ -131,6 +133,24 @@ export const loadView = (view) => {
     }
   }
   return res
+}
+
+/** 从后端返回的路由树中移除「教师考核」节点，避免 addRoute 后覆盖常驻路由导致点击菜单空白 */
+function stripTeacherAssessmentFromBackendRoutes(routes) {
+  if (!Array.isArray(routes)) return routes
+  return routes.map(route => {
+    const r = { ...route }
+    if (r.children && r.children.length) {
+      r.children = r.children.filter(c => {
+        const p = (c.path || '').toString()
+        const isTeacherAssessment = p === 'teacherAssessment' || p === '/course/teacherAssessment' || p === 'course/teacherAssessment' || p.endsWith('/teacherAssessment')
+        return !isTeacherAssessment
+      })
+      if (r.children.length === 0) delete r.children
+      else r.children = stripTeacherAssessmentFromBackendRoutes(r.children)
+    }
+    return r
+  })
 }
 
 /** loadView 解析失败时的显式兜底（解决部分环境 glob 路径匹配异常）；教师考核优先走此路径避免首次点击不显示 */

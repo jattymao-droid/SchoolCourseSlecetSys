@@ -1,0 +1,1 @@
+import{_ as t}from"./index-CIDovjkD.js";import{r as a,o,c as n,j as l,i as p}from"./index-BRz-boDb.js";const _={__name:"index",setup(c){const r=a("https://xk.xmls.vip/prod-api/druid/login.html");return(i,e)=>(o(),n("div",null,[l(p(t),{src:r.value,"onUpdate:src":e[0]||(e[0]=s=>r.value=s)},null,8,["src"])]))}};export{_ as default};

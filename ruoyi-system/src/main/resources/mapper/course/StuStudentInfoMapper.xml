@@ -60,6 +60,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         where s.student_no = #{studentNo} and s.del_flag = '0' limit 1
     </select>
 
+    <select id="countStudentByStudentNoPhysical" parameterType="String" resultType="int">
+        select count(1) from stu_student_info where student_no = #{studentNo}
+    </select>
+
     <insert id="insertStudent" parameterType="com.ruoyi.common.core.domain.entity.StuStudentInfo" useGeneratedKeys="true" keyProperty="id">
         insert into stu_student_info(user_id, student_no, real_name, class_id, grade_id, create_time)
         values (#{userId}, #{studentNo}, #{realName}, #{classId}, #{gradeId}, CURRENT_TIMESTAMP)
@@ -76,7 +80,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         where id = #{id}
     </update>
 
-    <update id="deleteStudentById" parameterType="Long">
-        update stu_student_info set del_flag = '2' where id = #{id}
-    </update>
+    <delete id="deleteStudentById" parameterType="Long">
+        delete from stu_student_info where id = #{id}
+    </delete>
 </mapper>

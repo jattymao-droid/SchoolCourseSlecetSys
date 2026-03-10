@@ -84,14 +84,15 @@ export const constantRoutes = [
       }
     ]
   },
+  // 教师考核：常驻路由，避免首次点击或动态路由未加载时页面空白（菜单仍由后端权限控制）
   {
-    path: '/course',
+    path: '/course/teacherAssessment',
     component: Layout,
     hidden: true,
     children: [
       {
-        path: 'teacherAssessment',
-        component: () => import('@/views/course/teacherAssessment/index'),
+        path: '',
+        component: () => import('@/views/course/teacherAssessment/index.vue'),
         name: 'TeacherAssessment',
         meta: { title: '教师考核', activeMenu: '/course/teacherAssessment', noCache: true }
       }
@@ -184,21 +185,8 @@ export const dynamicRoutes = [
         meta: { title: '评价管理', activeMenu: '/course/evaluation' }
       }
     ]
-  },
-  {
-    path: '/course/teacherAssessment',
-    component: Layout,
-    hidden: true,
-    permissions: ['course:teacherAssessment:list'],
-    children: [
-      {
-        path: '',
-        component: () => import('@/views/course/teacherAssessment/index'),
-        name: 'TeacherAssessment',
-        meta: { title: '教师考核', activeMenu: '/course/teacherAssessment', noCache: true }
-      }
-    ]
   }
+  // 教师考核仅用 constantRoutes 中的常驻路由，不在此重复注册，避免与后端路由冲突导致点击菜单空白
 ]
 
 const router = createRouter({

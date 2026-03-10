@@ -2,6 +2,54 @@
   <div class="app-container selection-container">
     <el-alert v-if="!currentSemester" title="当前无选课学期" type="warning" :closable="false" show-icon style="margin-bottom: 20px" />
     <template v-else>
+      <!-- 选课统计卡片 -->
+      <el-row :gutter="16" class="stats-cards-row mb8">
+        <el-col :xs="24" :sm="12" :md="6">
+          <el-card class="stats-card stats-card-blue" shadow="hover">
+            <div class="stats-content">
+              <div class="stats-icon"><el-icon :size="32"><Calendar /></el-icon></div>
+              <div class="stats-info">
+                <div class="stats-value">{{ (selectionStats && selectionStats.totalCourses) ?? 0 }}</div>
+                <div class="stats-label">可选课程总数</div>
+              </div>
+            </div>
+          </el-card>
+        </el-col>
+        <el-col :xs="24" :sm="12" :md="6">
+          <el-card class="stats-card stats-card-green" shadow="hover">
+            <div class="stats-content">
+              <div class="stats-icon"><el-icon :size="32"><Check /></el-icon></div>
+              <div class="stats-info">
+                <div class="stats-value">{{ (selectionStats && selectionStats.cartCount) ?? 0 }} / 5</div>
+                <div class="stats-label">预选门数</div>
+              </div>
+            </div>
+          </el-card>
+        </el-col>
+        <el-col :xs="24" :sm="12" :md="6">
+          <el-card class="stats-card stats-card-orange" shadow="hover">
+            <div class="stats-content">
+              <div class="stats-icon"><el-icon :size="32"><CircleCheck /></el-icon></div>
+              <div class="stats-info">
+                <div class="stats-value">{{ (selectionStats && selectionStats.submittedCount) ?? 0 }}</div>
+                <div class="stats-label">已提交选课门数</div>
+              </div>
+            </div>
+          </el-card>
+        </el-col>
+        <el-col :xs="24" :sm="12" :md="6">
+          <el-card class="stats-card stats-card-purple" shadow="hover">
+            <div class="stats-content">
+              <div class="stats-icon"><el-icon :size="32"><Warning /></el-icon></div>
+              <div class="stats-info">
+                <div class="stats-value">{{ (selectionStats && selectionStats.needCount) ?? 0 }}</div>
+                <div class="stats-label">还需选择门数</div>
+              </div>
+            </div>
+          </el-card>
+        </el-col>
+      </el-row>
+
       <div class="semester-header">
         <div class="semester-title">
           <el-icon><Calendar /></el-icon>
@@ -176,6 +224,25 @@ const coursesByDay = computed(() => {
 
 const cartCount = computed(() => {
   return Object.keys(cart.value).filter(k => cart.value[k]).length
+})
+
+/** 选课页统计（供顶部卡片展示） */
+const selectionStats = computed(() => {
+  try {
+    const total = (courseList.value || []).length
+    const cartNum = Object.keys(cart.value || {}).filter(k => cart.value[k]).length
+    const ids = mySelectionCourseIds.value
+    const submitted = (ids instanceof Set ? ids.size : (Array.isArray(ids) ? ids.length : 0)) || 0
+    const need = Math.max(0, 5 - cartNum)
+    return {
+      totalCourses: total,
+      cartCount: cartNum,
+      submittedCount: submitted,
+      needCount: need
+    }
+  } catch (_) {
+    return { totalCourses: 0, cartCount: 0, submittedCount: 0, needCount: 5 }
+  }
 })
 
 function isSelected(weekDay, courseId) {
@@ -944,5 +1011,67 @@ onUnmounted(() => {
     }
   }
 }
+
+/* 选课统计卡片（与课程/学生管理统一尺寸） */
+.stats-cards-row {
+  margin-bottom: 16px;
+}
+.stats-cards-row .el-col {
+  display: flex;
+}
+.stats-card {
+  border-radius: 12px;
+  width: 100%;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  :deep(.el-card__body) {
+    padding: 16px;
+    flex: 1;
+    display: flex;
+    align-items: stretch;
+  }
+}
+.stats-content {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 88px;
+}
+.stats-icon {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+.stats-info {
+  flex: 1;
+  min-width: 0;
+  min-height: 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.stats-value {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #1e293b;
+}
+.stats-label {
+  font-size: 13px;
+  color: #64748b;
+  margin-top: 4px;
+}
+.stats-card-blue .stats-icon { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+.stats-card-green .stats-icon { background: linear-gradient(135deg, #10b981, #059669); }
+.stats-card-orange .stats-icon { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.stats-card-purple .stats-icon { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+.mb8 { margin-bottom: 8px; }
 
 </style>

@@ -1,37 +1,37 @@
-Ôªø<template>
+<template>
    <div class="app-container">
       <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
-         <el-form-item label="Êìç‰ΩúÂú∞ÂùÄ" prop="operIp">
+         <el-form-item label="≤Ÿ◊˜µÿ÷∑" prop="operIp">
             <el-input
                v-model="queryParams.operIp"
-               placeholder="ËØ∑ËæìÂÖ•Êìç‰ΩúÂú∞ÂùÄ"
+               placeholder="«Î ‰»Î≤Ÿ◊˜µÿ÷∑"
                clearable
                style="width: 240px;"
                @keyup.enter="handleQuery"
             />
          </el-form-item>
-         <el-form-item label="Á≥ªÁªüÊ®°Âùó" prop="title">
+         <el-form-item label="œµÕ≥ƒ£øÈ" prop="title">
             <el-input
                v-model="queryParams.title"
-               placeholder="ËØ∑ËæìÂÖ•Á≥ªÁªüÊ®°Âùó"
+               placeholder="«Î ‰»ÎœµÕ≥ƒ£øÈ"
                clearable
                style="width: 240px;"
                @keyup.enter="handleQuery"
             />
          </el-form-item>
-         <el-form-item label="Êìç‰Ωú‰∫∫Âëò" prop="operName">
+         <el-form-item label="≤Ÿ◊˜»À‘±" prop="operName">
             <el-input
                v-model="queryParams.operName"
-               placeholder="ËØ∑ËæìÂÖ•Êìç‰Ωú‰∫∫Âëò"
+               placeholder="«Î ‰»Î≤Ÿ◊˜»À‘±"
                clearable
                style="width: 240px;"
                @keyup.enter="handleQuery"
             />
          </el-form-item>
-         <el-form-item label="Á±ªÂûã" prop="businessType">
+         <el-form-item label="¿‡–Õ" prop="businessType">
             <el-select
                v-model="queryParams.businessType"
-               placeholder="Êìç‰ΩúÁ±ªÂûã"
+               placeholder="≤Ÿ◊˜¿‡–Õ"
                clearable
                style="width: 240px"
             >
@@ -43,10 +43,10 @@
                />
             </el-select>
          </el-form-item>
-         <el-form-item label="Áä∂ÊÄÅ" prop="status">
+         <el-form-item label="◊¥Ã¨" prop="status">
             <el-select
                v-model="queryParams.status"
-               placeholder="Êìç‰ΩúÁä∂ÊÄÅ"
+               placeholder="≤Ÿ◊˜◊¥Ã¨"
                clearable
                style="width: 240px"
             >
@@ -58,20 +58,20 @@
                />
             </el-select>
          </el-form-item>
-         <el-form-item label="Êìç‰ΩúÊó∂Èó¥" style="width: 308px">
+         <el-form-item label="≤Ÿ◊˜ ±º‰" style="width: 308px">
             <el-date-picker
                v-model="dateRange"
                value-format="YYYY-MM-DD HH:mm:ss"
                type="daterange"
                range-separator="-"
-               start-placeholder="ÂºÄÂßãÊó•Êúü"
-               end-placeholder="ÁªìÊùüÊó•Êúü"
+               start-placeholder="ø™ º»’∆⁄"
+               end-placeholder="Ω· ¯»’∆⁄"
                :default-time="[new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59, 59)]"
             ></el-date-picker>
          </el-form-item>
          <el-form-item>
-            <el-button type="primary" icon="Search" @click="handleQuery">ÊêúÁ¥¢</el-button>
-            <el-button icon="Refresh" @click="resetQuery">ÈáçÁΩÆ</el-button>
+            <el-button type="primary" icon="Search" @click="handleQuery">À—À˜</el-button>
+            <el-button icon="Refresh" @click="resetQuery">÷ÿ÷√</el-button>
          </el-form-item>
       </el-form>
 
@@ -84,7 +84,7 @@
                :disabled="multiple"
                @click="handleDelete"
                v-hasPermi="['monitor:operlog:remove']"
-            >Âà†Èô§</el-button>
+            >…æ≥˝</el-button>
          </el-col>
          <el-col :span="1.5">
             <el-button
@@ -93,7 +93,7 @@
                icon="Delete"
                @click="handleClean"
                v-hasPermi="['monitor:operlog:remove']"
-            >Ê∏ÖÁ©∫</el-button>
+            >«Âø’</el-button>
          </el-col>
          <el-col :span="1.5">
             <el-button
@@ -102,40 +102,40 @@
                icon="Download"
                @click="handleExport"
                v-hasPermi="['monitor:operlog:export']"
-            >ÂØºÂá∫</el-button>
+            >µº≥ˆ</el-button>
          </el-col>
          <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
       </el-row>
 
       <el-table ref="operlogRef" v-loading="loading" :data="operlogList" @selection-change="handleSelectionChange" :default-sort="defaultSort" @sort-change="handleSortChange">
          <el-table-column type="selection" width="50" align="center" />
-         <el-table-column label="Êó•ÂøóÁºñÂè∑" align="center" prop="operId" />
-         <el-table-column label="Á≥ªÁªüÊ®°Âùó" align="center" prop="title" :show-overflow-tooltip="true" />
-         <el-table-column label="Êìç‰ΩúÁ±ªÂûã" align="center" prop="businessType">
+         <el-table-column label="»’÷æ±‡∫≈" align="center" prop="operId" />
+         <el-table-column label="œµÕ≥ƒ£øÈ" align="center" prop="title" :show-overflow-tooltip="true" />
+         <el-table-column label="≤Ÿ◊˜¿‡–Õ" align="center" prop="businessType">
             <template #default="scope">
                <dict-tag :options="sys_oper_type" :value="scope.row.businessType" />
             </template>
          </el-table-column>
-         <el-table-column label="Êìç‰Ωú‰∫∫Âëò" align="center" width="110" prop="operName" :show-overflow-tooltip="true" sortable="custom" :sort-orders="['descending', 'ascending']" />
-         <el-table-column label="Êìç‰ΩúÂú∞ÂùÄ" align="center" prop="operIp" width="130" :show-overflow-tooltip="true" />
-         <el-table-column label="Êìç‰ΩúÁä∂ÊÄÅ" align="center" prop="status">
+         <el-table-column label="≤Ÿ◊˜»À‘±" align="center" width="110" prop="operName" :show-overflow-tooltip="true" sortable="custom" :sort-orders="['descending', 'ascending']" />
+         <el-table-column label="≤Ÿ◊˜µÿ÷∑" align="center" prop="operIp" width="130" :show-overflow-tooltip="true" />
+         <el-table-column label="≤Ÿ◊˜◊¥Ã¨" align="center" prop="status">
             <template #default="scope">
                <dict-tag :options="sys_common_status" :value="scope.row.status" />
             </template>
          </el-table-column>
-         <el-table-column label="Êìç‰ΩúÊó•Êúü" align="center" prop="operTime" width="180" sortable="custom" :sort-orders="['descending', 'ascending']">
+         <el-table-column label="≤Ÿ◊˜»’∆⁄" align="center" prop="operTime" width="180" sortable="custom" :sort-orders="['descending', 'ascending']">
             <template #default="scope">
                <span>{{ parseTime(scope.row.operTime) }}</span>
             </template>
          </el-table-column>
-         <el-table-column label="Ê∂àËÄóÊó∂Èó¥" align="center" prop="costTime" width="110" :show-overflow-tooltip="true" sortable="custom" :sort-orders="['descending', 'ascending']">
+         <el-table-column label="œ˚∫ƒ ±º‰" align="center" prop="costTime" width="110" :show-overflow-tooltip="true" sortable="custom" :sort-orders="['descending', 'ascending']">
             <template #default="scope">
-               <span>{{ scope.row.costTime }}ÊØ´Áßí</span>
+               <span>{{ scope.row.costTime }}∫¡√Î</span>
             </template>
          </el-table-column>
-         <el-table-column label="Êìç‰Ωú" align="center" class-name="small-padding fixed-width">
+         <el-table-column label="≤Ÿ◊˜" align="center" class-name="small-padding fixed-width">
             <template #default="scope">
-               <el-button link type="primary" icon="View" @click="handleView(scope.row, scope.index)" v-hasPermi="['monitor:operlog:query']">ËØ¶ÁªÜ</el-button>
+               <el-button link type="primary" icon="View" @click="handleView(scope.row, scope.index)" v-hasPermi="['monitor:operlog:query']">œÍœ∏</el-button>
             </template>
          </el-table-column>
       </el-table>
@@ -148,49 +148,49 @@
          @pagination="getList"
       />
 
-      <!-- Êìç‰ΩúÊó•ÂøóËØ¶ÁªÜ -->
-      <el-dialog title="Êìç‰ΩúÊó•ÂøóËØ¶ÁªÜ" v-model="open" width="800px" append-to-body>
+      <!-- ≤Ÿ◊˜»’÷æœÍœ∏ -->
+      <el-dialog title="≤Ÿ◊˜»’÷æœÍœ∏" v-model="open" width="800px" append-to-body>
          <el-form :model="form" label-width="100px">
             <el-row>
                <el-col :span="12">
-                  <el-form-item label="Êìç‰ΩúÊ®°ÂùóÔºö">{{ form.title }} / {{ typeFormat(form) }}</el-form-item>
+                  <el-form-item label="≤Ÿ◊˜ƒ£øÈ£∫">{{ form.title }} / {{ typeFormat(form) }}</el-form-item>
                   <el-form-item
-                    label="ÁôªÂΩï‰ø°ÊÅØÔºö"
+                    label="µ«¬º–≈œ¢£∫"
                   >{{ form.operName }} / {{ form.operIp }} / {{ form.operLocation }}</el-form-item>
                </el-col>
                <el-col :span="12">
-                  <el-form-item label="ËØ∑Ê±ÇÂú∞ÂùÄÔºö">{{ form.operUrl }}</el-form-item>
-                  <el-form-item label="ËØ∑Ê±ÇÊñπÂºèÔºö">{{ form.requestMethod }}</el-form-item>
+                  <el-form-item label="«Î«Ûµÿ÷∑£∫">{{ form.operUrl }}</el-form-item>
+                  <el-form-item label="«Î«Û∑Ω Ω£∫">{{ form.requestMethod }}</el-form-item>
                </el-col>
                <el-col :span="24">
-                  <el-form-item label="Êìç‰ΩúÊñπÊ≥ïÔºö">{{ form.method }}</el-form-item>
+                  <el-form-item label="≤Ÿ◊˜∑Ω∑®£∫">{{ form.method }}</el-form-item>
                </el-col>
                <el-col :span="24">
-                  <el-form-item label="ËØ∑Ê±ÇÂèÇÊï∞Ôºö" style="word-break: break-all; white-space: pre-wrap;">{{ form.operParam }}</el-form-item>
+                  <el-form-item label="«Î«Û≤Œ ˝£∫" style="word-break: break-all; white-space: pre-wrap;">{{ form.operParam }}</el-form-item>
                </el-col>
                <el-col :span="24">
-                  <el-form-item label="ËøîÂõûÂèÇÊï∞Ôºö">{{ form.jsonResult }}</el-form-item>
+                  <el-form-item label="∑µªÿ≤Œ ˝£∫">{{ form.jsonResult }}</el-form-item>
                </el-col>
                <el-col :span="8">
-                  <el-form-item label="Êìç‰ΩúÁä∂ÊÄÅÔºö">
-                     <div v-if="form.status === 0">Ê≠£Â∏∏</div>
-                     <div v-else-if="form.status === 1">Â§±Ë¥•</div>
+                  <el-form-item label="≤Ÿ◊˜◊¥Ã¨£∫">
+                     <div v-if="form.status === 0">’˝≥£</div>
+                     <div v-else-if="form.status === 1"> ß∞‹</div>
                   </el-form-item>
                </el-col>
                <el-col :span="8">
-                  <el-form-item label="Ê∂àËÄóÊó∂Èó¥Ôºö">{{ form.costTime }}ÊØ´Áßí</el-form-item>
+                  <el-form-item label="œ˚∫ƒ ±º‰£∫">{{ form.costTime }}∫¡√Î</el-form-item>
                </el-col>
                <el-col :span="8">
-                  <el-form-item label="Êìç‰ΩúÊó∂Èó¥Ôºö">{{ parseTime(form.operTime) }}</el-form-item>
+                  <el-form-item label="≤Ÿ◊˜ ±º‰£∫">{{ parseTime(form.operTime) }}</el-form-item>
                </el-col>
                <el-col :span="24">
-                  <el-form-item label="ÂºÇÂ∏∏‰ø°ÊÅØÔºö" v-if="form.status === 1">{{ form.errorMsg }}</el-form-item>
+                  <el-form-item label="“Ï≥£–≈œ¢£∫" v-if="form.status === 1">{{ form.errorMsg }}</el-form-item>
                </el-col>
             </el-row>
          </el-form>
          <template #footer>
             <div class="dialog-footer">
-               <el-button @click="open = false">ÂÖ≥ Èó≠</el-button>
+               <el-button @click="open = false">πÿ ±’</el-button>
             </div>
          </template>
       </el-dialog>
@@ -230,7 +230,7 @@ const data = reactive({
 
 const { queryParams, form } = toRefs(data)
 
-/** Êü•ËØ¢ÁôªÂΩïÊó•Âøó */
+/** ≤È—Øµ«¬º»’÷æ */
 function getList() {
   loading.value = true
   list(proxy.addDateRange(queryParams.value, dateRange.value)).then(response => {
@@ -240,18 +240,18 @@ function getList() {
   })
 }
 
-/** Êìç‰ΩúÊó•ÂøóÁ±ªÂûãÂ≠óÂÖ∏ÁøªËØë */
+/** ≤Ÿ◊˜»’÷æ¿‡–Õ◊÷µ‰∑≠“Î */
 function typeFormat(row, column) {
   return proxy.selectDictLabel(sys_oper_type.value, row.businessType)
 }
 
-/** ÊêúÁ¥¢ÊåâÈíÆÊìç‰Ωú */
+/** À—À˜∞¥≈•≤Ÿ◊˜ */
 function handleQuery() {
   queryParams.value.pageNum = 1
   getList()
 }
 
-/** ÈáçÁΩÆÊåâÈíÆÊìç‰Ωú */
+/** ÷ÿ÷√∞¥≈•≤Ÿ◊˜ */
 function resetQuery() {
   dateRange.value = []
   proxy.resetForm("queryRef")
@@ -259,47 +259,47 @@ function resetQuery() {
   proxy.$refs["operlogRef"].sort(defaultSort.value.prop, defaultSort.value.order)
 }
 
-/** Â§öÈÄâÊ°ÜÈÄâ‰∏≠Êï∞ÊçÆ */
+/** ∂‡—°øÚ—°÷– ˝æ› */
 function handleSelectionChange(selection) {
   ids.value = selection.map(item => item.operId)
   multiple.value = !selection.length
 }
 
-/** ÊéíÂ∫èËß¶Âèë‰∫ã‰ª∂ */
+/** ≈≈–Ú¥•∑¢ ¬º˛ */
 function handleSortChange(column, prop, order) {
   queryParams.value.orderByColumn = column.prop
   queryParams.value.isAsc = column.order
   getList()
 }
 
-/** ËØ¶ÁªÜÊåâÈíÆÊìç‰Ωú */
+/** œÍœ∏∞¥≈•≤Ÿ◊˜ */
 function handleView(row) {
   open.value = true
   form.value = row
 }
 
-/** Âà†Èô§ÊåâÈíÆÊìç‰Ωú */
+/** …æ≥˝∞¥≈•≤Ÿ◊˜ */
 function handleDelete(row) {
   const operIds = row.operId || ids.value
-  proxy.$modal.confirm('ÊòØÂê¶Á°ÆËÆ§Âà†Èô§Êó•ÂøóÁºñÂè∑‰∏∫"' + operIds + '"ÁöÑÊï∞ÊçÆÈ°π?').then(function () {
+  proxy.$modal.confirm(' «∑Ò»∑»œ…æ≥˝»’÷æ±‡∫≈Œ™"' + operIds + '"µƒ ˝æ›œÓ?').then(function () {
     return delOperlog(operIds)
   }).then(() => {
     getList()
-    proxy.$modal.msgSuccess("Âà†Èô§ÊàêÂäü")
+    proxy.$modal.msgSuccess("…æ≥˝≥…π¶")
   }).catch(() => {})
 }
 
-/** Ê∏ÖÁ©∫ÊåâÈíÆÊìç‰Ωú */
+/** «Âø’∞¥≈•≤Ÿ◊˜ */
 function handleClean() {
-  proxy.$modal.confirm("ÊòØÂê¶Á°ÆËÆ§Ê∏ÖÁ©∫ÊâÄÊúâÊìç‰ΩúÊó•ÂøóÊï∞ÊçÆÈ°π?").then(function () {
+  proxy.$modal.confirm(" «∑Ò»∑»œ«Âø’À˘”–≤Ÿ◊˜»’÷æ ˝æ›œÓ?").then(function () {
     return cleanOperlog()
   }).then(() => {
     getList()
-    proxy.$modal.msgSuccess("Ê∏ÖÁ©∫ÊàêÂäü")
+    proxy.$modal.msgSuccess("«Âø’≥…π¶")
   }).catch(() => {})
 }
 
-/** ÂØºÂá∫ÊåâÈíÆÊìç‰Ωú */
+/** µº≥ˆ∞¥≈•≤Ÿ◊˜ */
 function handleExport() {
   proxy.download("monitor/operlog/export",{
     ...queryParams.value,

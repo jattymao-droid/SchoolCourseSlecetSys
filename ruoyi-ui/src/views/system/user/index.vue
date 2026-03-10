@@ -2,7 +2,7 @@
   <div class="app-container">
     <el-row :gutter="20">
       <splitpanes :horizontal="appStore.device === 'mobile'" class="default-theme">
-        <!--部门数据-->
+        <!-- 左侧部门树 -->
         <pane size="16">
           <el-col>
             <div class="head-container">
@@ -13,29 +13,45 @@
             </div>
           </el-col>
         </pane>
-        <!--用户数据-->
+        <!-- 右侧用户列表 -->
         <pane size="84">
           <el-col>
-            <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
-              <el-form-item label="用户名称" prop="userName">
-                <el-input v-model="queryParams.userName" placeholder="请输入用户名称" clearable style="width: 240px" @keyup.enter="handleQuery" />
-              </el-form-item>
-              <el-form-item label="手机号码" prop="phonenumber">
-                <el-input v-model="queryParams.phonenumber" placeholder="请输入手机号码" clearable style="width: 240px" @keyup.enter="handleQuery" />
-              </el-form-item>
-              <el-form-item label="状态" prop="status">
-                <el-select v-model="queryParams.status" placeholder="用户状态" clearable style="width: 240px">
-                  <el-option v-for="dict in sys_normal_disable" :key="dict.value" :label="dict.label" :value="dict.value" />
-                </el-select>
-              </el-form-item>
-              <el-form-item label="创建时间" style="width: 308px">
-                <el-date-picker v-model="dateRange" value-format="YYYY-MM-DD" type="daterange" range-separator="-" start-placeholder="开始日期" end-placeholder="结束日期"></el-date-picker>
-              </el-form-item>
-              <el-form-item>
-                <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
-                <el-button icon="Refresh" @click="resetQuery">重置</el-button>
-              </el-form-item>
-            </el-form>
+            <!-- 搜索区域 -->
+            <el-card v-show="showSearch" class="search-card" shadow="never">
+              <el-form :model="queryParams" ref="queryRef" class="search-form" label-width="82px">
+                <el-row :gutter="16">
+                  <el-col :xs="24" :sm="12" :md="8" :lg="6">
+                    <el-form-item label="用户名称" prop="userName">
+                      <el-input v-model="queryParams.userName" placeholder="请输入用户名称" clearable @keyup.enter="handleQuery" />
+                    </el-form-item>
+                  </el-col>
+                  <el-col :xs="24" :sm="12" :md="8" :lg="6">
+                    <el-form-item label="手机号码" prop="phonenumber">
+                      <el-input v-model="queryParams.phonenumber" placeholder="请输入手机号码" clearable @keyup.enter="handleQuery" />
+                    </el-form-item>
+                  </el-col>
+                  <el-col :xs="24" :sm="12" :md="8" :lg="6">
+                    <el-form-item label="状态" prop="status">
+                      <el-select v-model="queryParams.status" placeholder="用户状态" clearable style="width: 100%">
+                        <el-option v-for="dict in sys_normal_disable" :key="dict.value" :label="dict.label" :value="dict.value" />
+                      </el-select>
+                    </el-form-item>
+                  </el-col>
+                  <el-col :xs="24" :sm="12" :md="8" :lg="6">
+                    <el-form-item label="创建时间">
+                      <el-date-picker v-model="dateRange" value-format="YYYY-MM-DD" type="daterange" range-separator="-"
+                        start-placeholder="开始日期" end-placeholder="结束日期" style="width: 100%" />
+                    </el-form-item>
+                  </el-col>
+                </el-row>
+                <el-row>
+                  <el-col :span="24" class="search-actions">
+                    <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+                    <el-button icon="Refresh" @click="resetQuery">重置</el-button>
+                  </el-col>
+                </el-row>
+              </el-form>
+            </el-card>
 
             <el-row :gutter="10" class="mb8">
               <el-col :span="1.5">
@@ -101,13 +117,13 @@
       </splitpanes>
     </el-row>
 
-    <!-- 添加或修改用户配置对话框 -->
+    <!-- 新增/修改用户 -->
     <el-dialog :title="title" v-model="open" width="600px" append-to-body>
       <el-form :model="form" :rules="rules" ref="userRef" label-width="80px">
         <el-row>
           <el-col :span="12">
             <el-form-item label="用户昵称" prop="nickName">
-              <el-input v-model="form.nickName" placeholder="请输入用户昵称" maxlength="30" />
+              <el-input v-model="form.nickName" placeholder="请输入昵称" maxlength="30" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -142,8 +158,8 @@
         </el-row>
         <el-row>
           <el-col :span="12">
-            <el-form-item label="用户性别">
-              <el-select v-model="form.sex" placeholder="请选择">
+            <el-form-item label="性别">
+              <el-select v-model="form.sex" placeholder="请选择性别">
                 <el-option v-for="dict in sys_user_sex" :key="dict.value" :label="dict.label" :value="dict.value"></el-option>
               </el-select>
             </el-form-item>
@@ -159,14 +175,14 @@
         <el-row>
           <el-col :span="12">
             <el-form-item label="岗位">
-              <el-select v-model="form.postIds" multiple placeholder="请选择">
+              <el-select v-model="form.postIds" multiple placeholder="请选择岗位">
                 <el-option v-for="item in postOptions" :key="item.postId" :label="item.postName" :value="item.postId" :disabled="item.status == 1"></el-option>
               </el-select>
             </el-form-item>
           </el-col>
           <el-col :span="12">
             <el-form-item label="角色">
-              <el-select v-model="form.roleIds" multiple placeholder="请选择">
+              <el-select v-model="form.roleIds" multiple placeholder="请选择角色">
                 <el-option v-for="item in roleOptions" :key="item.roleId" :label="item.roleName" :value="item.roleId" :disabled="item.status == 1"></el-option>
               </el-select>
             </el-form-item>
@@ -175,20 +191,20 @@
         <el-row>
           <el-col :span="24">
             <el-form-item label="备注">
-              <el-input v-model="form.remark" type="textarea" placeholder="请输入内容"></el-input>
+              <el-input v-model="form.remark" type="textarea" placeholder="请输入备注"></el-input>
             </el-form-item>
           </el-col>
         </el-row>
       </el-form>
       <template #footer>
         <div class="dialog-footer">
-          <el-button type="primary" @click="submitForm">确 定</el-button>
-          <el-button @click="cancel">取 消</el-button>
+          <el-button type="primary" @click="submitForm">确定</el-button>
+          <el-button @click="cancel">取消</el-button>
         </div>
       </template>
     </el-dialog>
 
-    <!-- 用户导入对话框 -->
+    <!-- 用户导入 -->
     <el-dialog :title="upload.title" v-model="upload.open" width="400px" append-to-body>
       <el-upload ref="uploadRef" :limit="1" accept=".xlsx, .xls" :headers="upload.headers" :action="upload.url + '?updateSupport=' + upload.updateSupport" :disabled="upload.isUploading" :on-progress="handleFileUploadProgress" :on-success="handleFileSuccess" :on-change="handleFileChange" :on-remove="handleFileRemove" :auto-upload="false" drag>
         <el-icon class="el-icon--upload"><upload-filled /></el-icon>
@@ -205,8 +221,8 @@
       </el-upload>
       <template #footer>
         <div class="dialog-footer">
-          <el-button type="primary" @click="submitFileForm">确 定</el-button>
-          <el-button @click="upload.open = false">取 消</el-button>
+          <el-button type="primary" @click="submitFileForm">确定</el-button>
+          <el-button @click="upload.open = false">取消</el-button>
         </div>
       </template>
     </el-dialog>
@@ -241,22 +257,16 @@ const enabledDeptOptions = ref(undefined)
 const initPassword = ref(undefined)
 const postOptions = ref([])
 const roleOptions = ref([])
-/*** 用户导入参数 */
+/** 用户导入 */
 const upload = reactive({
-  // 是否显示弹出层（用户导入）
   open: false,
-  // 弹出层标题（用户导入）
   title: "",
-  // 是否禁用上传
   isUploading: false,
-  // 是否更新已经存在的用户数据
   updateSupport: 0,
-  // 设置上传的请求头部
   headers: { Authorization: "Bearer " + getToken() },
-  // 上传的地址
   url: import.meta.env.VITE_APP_BASE_API + "/system/user/importData"
 })
-// 列显隐信息
+/** 列显隐配置 */
 const columns = ref({
   userId: { label: '用户编号', visible: true },
   userName: { label: '用户名称', visible: true },
@@ -278,9 +288,9 @@ const data = reactive({
     deptId: undefined
   },
   rules: {
-    userName: [{ required: true, message: "用户名称不能为空", trigger: "blur" }, { min: 2, max: 20, message: "用户名称长度必须介于 2 和 20 之间", trigger: "blur" }],
-    nickName: [{ required: true, message: "用户昵称不能为空", trigger: "blur" }],
-    password: [{ required: true, message: "用户密码不能为空", trigger: "blur" }, { min: 5, max: 20, message: "用户密码长度必须介于 5 和 20 之间", trigger: "blur" }, { pattern: /^[^<>"'|\\]+$/, message: "不能包含非法字符：< > \" ' \\\ |", trigger: "blur" }],
+    userName: [{ required: true, message: "请输入用户名称", trigger: "blur" }, { min: 2, max: 20, message: "用户名称长度必须介于 2 和 20 之间", trigger: "blur" }],
+    nickName: [{ required: true, message: "请输入用户昵称", trigger: "blur" }],
+    password: [{ required: true, message: "请输入用户密码", trigger: "blur" }, { min: 5, max: 20, message: "用户密码长度必须介于 5 和 20 之间", trigger: "blur" }, { pattern: /^[^<>"'|\\]+$/, message: "用户密码不能包含 > \" ' \\ |", trigger: "blur" }],
     email: [{ type: "email", message: "请输入正确的邮箱地址", trigger: ["blur", "change"] }],
     phonenumber: [{ pattern: /^1[3|4|5|6|7|8|9][0-9]\d{8}$/, message: "请输入正确的手机号码", trigger: "blur" }]
   }
@@ -288,13 +298,13 @@ const data = reactive({
 
 const { queryParams, form, rules } = toRefs(data)
 
-/** 通过条件过滤节点  */
+/** 部门树过滤 */
 const filterNode = (value, data) => {
   if (!value) return true
   return data.label.indexOf(value) !== -1
 }
 
-/** 根据名称筛选部门树 */
+/** 监听部门名称搜索 */
 watch(deptName, val => {
   proxy.$refs["deptTreeRef"].filter(val)
 })
@@ -309,7 +319,7 @@ function getList() {
   })
 }
 
-/** 查询部门下拉树结构 */
+/** 查询部门树 */
 function getDeptTree() {
   deptTreeSelect().then(response => {
     deptOptions.value = response.data
@@ -317,7 +327,7 @@ function getDeptTree() {
   })
 }
 
-/** 过滤禁用的部门 */
+/** 过滤禁用部门 */
 function filterDisabledDept(deptList) {
   return deptList.filter(dept => {
     if (dept.disabled) {
@@ -330,19 +340,19 @@ function filterDisabledDept(deptList) {
   })
 }
 
-/** 节点单击事件 */
+/** 部门树节点点击 */
 function handleNodeClick(data) {
   queryParams.value.deptId = data.id
   handleQuery()
 }
 
-/** 搜索按钮操作 */
+/** 搜索按钮 */
 function handleQuery() {
   queryParams.value.pageNum = 1
   getList()
 }
 
-/** 重置按钮操作 */
+/** 重置按钮 */
 function resetQuery() {
   dateRange.value = []
   proxy.resetForm("queryRef")
@@ -351,7 +361,7 @@ function resetQuery() {
   handleQuery()
 }
 
-/** 删除按钮操作 */
+/** 删除用户 */
 function handleDelete(row) {
   const userIds = row.userId || ids.value
   proxy.$modal.confirm('是否确认删除用户编号为"' + userIds + '"的数据项？').then(function () {
@@ -362,17 +372,17 @@ function handleDelete(row) {
   }).catch(() => {})
 }
 
-/** 导出按钮操作 */
+/** 导出用户 */
 function handleExport() {
   proxy.download("system/user/export", {
     ...queryParams.value,
   },`user_${new Date().getTime()}.xlsx`)
 }
 
-/** 用户状态修改  */
+/** 状态修改 */
 function handleStatusChange(row) {
   let text = row.status === "0" ? "启用" : "停用"
-  proxy.$modal.confirm('确认要"' + text + '""' + row.userName + '"用户吗?').then(function () {
+  proxy.$modal.confirm('确认要"' + text + '""' + row.userName + '"用户吗？').then(function () {
     return changeUserStatus(row.userId, row.status)
   }).then(() => {
     proxy.$modal.msgSuccess(text + "成功")
@@ -381,7 +391,7 @@ function handleStatusChange(row) {
   })
 }
 
-/** 更多操作 */
+/** 下拉命令 */
 function handleCommand(command, row) {
   switch (command) {
     case "handleResetPwd":
@@ -395,68 +405,68 @@ function handleCommand(command, row) {
   }
 }
 
-/** 跳转角色分配 */
+/** 分配角色 */
 function handleAuthRole(row) {
   const userId = row.userId
   router.push("/system/user-auth/role/" + userId)
 }
 
-/** 重置密码按钮操作 */
+/** 重置密码 */
 function handleResetPwd(row) {
-  proxy.$prompt('请输入"' + row.userName + '"的新密码', "提示", {
+  proxy.$prompt('请输入"' + row.userName + '"的新密码', "重置密码", {
     confirmButtonText: "确定",
     cancelButtonText: "取消",
     closeOnClickModal: false,
     inputPattern: /^.{5,20}$/,
-    inputErrorMessage: "用户密码长度必须介于 5 和 20 之间",
+    inputErrorMessage: "新密码长度必须介于 5 到 20 之间",
     inputValidator: (value) => {
       if (/<|>|"|'|\||\\/.test(value)) {
-        return "不能包含非法字符：< > \" ' \\\ |"
+        return "密码不能包含 > \" ' \\ |"
       }
     },
   }).then(({ value }) => {
     resetUserPwd(row.userId, value).then(() => {
-      proxy.$modal.msgSuccess("修改成功，新密码是：" + value)
+      proxy.$modal.msgSuccess("密码重置成功，新密码是：" + value)
     })
   }).catch(() => {})
 }
 
-/** 选择条数  */
+/** 多选 */
 function handleSelectionChange(selection) {
   ids.value = selection.map(item => item.userId)
   single.value = selection.length != 1
   multiple.value = !selection.length
 }
 
-/** 导入按钮操作 */
+/** 用户导入弹窗 */
 function handleImport() {
   upload.title = "用户导入"
   upload.open = true
   upload.selectedFile = null
 }
 
-/** 下载模板操作 */
+/** 下载导入模板 */
 function importTemplate() {
   proxy.download("system/user/importTemplate", {
   }, `user_template_${new Date().getTime()}.xlsx`)
 }
 
-/**文件上传中处理 */
+/** 文件上传中 */
 const handleFileUploadProgress = (event, file, fileList) => {
   upload.isUploading = true
 }
 
-/** 文件选择处理 */
+/** 文件选择 */
 const handleFileChange = (file, fileList) => {
   upload.selectedFile = file
 }
 
-/** 文件删除处理 */
+/** 文件移除 */
 const handleFileRemove = (file, fileList) => {
   upload.selectedFile = null
 }
 
-/** 文件上传成功处理 */
+/** 文件上传成功 */
 const handleFileSuccess = (response, file, fileList) => {
   upload.open = false
   upload.isUploading = false
@@ -465,17 +475,17 @@ const handleFileSuccess = (response, file, fileList) => {
   getList()
 }
 
-/** 提交上传文件 */
+/** 提交导入文件 */
 function submitFileForm() {
   const file = upload.selectedFile
   if (!file || file.length === 0 || !file.name.toLowerCase().endsWith('.xls') && !file.name.toLowerCase().endsWith('.xlsx')) {
-    proxy.$modal.msgError("请选择后缀为 “xls”或“xlsx”的文件。")
+    proxy.$modal.msgError("请选择 xls 或 xlsx 格式的文件")
     return
   }
   proxy.$refs["uploadRef"].submit()
 }
 
-/** 重置操作表单 */
+/** 表单重置 */
 function reset() {
   form.value = {
     userId: undefined,
@@ -500,7 +510,7 @@ function cancel() {
   reset()
 }
 
-/** 新增按钮操作 */
+/** 新增用户 */
 function handleAdd() {
   reset()
   getUser().then(response => {
@@ -512,7 +522,7 @@ function handleAdd() {
   })
 }
 
-/** 修改按钮操作 */
+/** 修改用户 */
 function handleUpdate(row) {
   reset()
   const userId = row.userId || ids.value
@@ -540,7 +550,7 @@ function submitForm() {
         })
       } else {
         addUser(form.value).then(() => {
-          proxy.$modal.msgSuccess("新增成功")
+          proxy.$modal.msgSuccess("添加成功")
           open.value = false
           getList()
         })
@@ -585,6 +595,39 @@ onMounted(() => {
   border-radius: 8px;
   border: 1px solid #e2e8f0;
   margin-bottom: 15px;
+}
+
+/* 搜索区域 */
+.search-card {
+  margin-bottom: 16px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+
+  :deep(.el-card__body) {
+    padding: 18px 20px 14px;
+  }
+}
+
+.search-form {
+  :deep(.el-form-item) {
+    margin-bottom: 14px;
+  }
+  :deep(.el-input),
+  :deep(.el-date-editor) {
+    width: 100%;
+  }
+}
+
+.search-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding-top: 4px;
+  margin-bottom: 0;
+
+  .el-button {
+    margin-left: 10px;
+  }
 }
 
 :deep(.splitpanes--vertical > .splitpanes__splitter) {

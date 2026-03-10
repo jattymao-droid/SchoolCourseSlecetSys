@@ -43,6 +43,14 @@ export function delCourse(id) {
   })
 }
 
+// 批量删除课程
+export function delCourseBatch(ids) {
+  return request({
+    url: '/course/course/batch/' + ids,
+    method: 'delete'
+  })
+}
+
 // 复制课程到新学期
 export function copyToNewSemester(oldCourseId, newSemesterId) {
   return request({

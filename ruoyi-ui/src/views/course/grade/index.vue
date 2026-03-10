@@ -33,7 +33,7 @@
           icon="Sort"
           @click="handleUpgrade"
           v-hasPermi="['course:grade:edit']"
-        >一键升级</el-button>
+        >升级年级</el-button>
       </el-col>
       <el-col :span="1.5" v-if="selectedGradeId">
         <el-button
@@ -97,7 +97,7 @@
               <el-tag v-if="selectedGradeName" type="primary" effect="plain" class="header-tag">{{ selectedGradeName }}</el-tag>
             </div>
           </template>
-          <el-empty v-if="!selectedGradeId" description="请先选择左侧年级" />
+          <el-empty v-if="!selectedGradeId" description="请选择左侧年级查看班级" />
           <el-table v-else v-loading="classLoading" :data="classList" class="custom-table" stripe>
             <el-table-column label="班级名称" prop="className" align="center">
               <template #default="scope">
@@ -131,27 +131,27 @@
       </el-col>
     </el-row>
 
-    <!-- 年级表单 -->
+    <!-- 年级对话框 -->
     <el-dialog :title="gradeTitle" v-model="gradeOpen" width="400px" append-to-body>
       <el-form ref="gradeRef" :model="gradeForm" :rules="gradeRules" label-width="80px">
         <el-form-item label="年级名称" prop="gradeName">
-          <el-input v-model="gradeForm.gradeName" placeholder="如：高一、高二" />
+          <el-input v-model="gradeForm.gradeName" placeholder="请输入年级名称" />
         </el-form-item>
         <el-form-item label="排序" prop="sort">
           <el-input-number v-model="gradeForm.sort" :min="0" controls-position="right" style="width: 100%" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button type="primary" @click="submitGradeForm">确 定</el-button>
-        <el-button @click="gradeOpen = false">取 消</el-button>
+        <el-button type="primary" @click="submitGradeForm">确定</el-button>
+        <el-button @click="gradeOpen = false">取消</el-button>
       </template>
     </el-dialog>
 
-    <!-- 班级表单 -->
+    <!-- 班级对话框 -->
     <el-dialog :title="classTitle" v-model="classOpen" width="400px" append-to-body>
       <el-form ref="classRef" :model="classForm" :rules="classRules" label-width="80px">
         <el-form-item label="班级名称" prop="className">
-          <el-input v-model="classForm.className" placeholder="如：1班、2班" />
+          <el-input v-model="classForm.className" placeholder="例如：1班" />
         </el-form-item>
         <el-form-item label="所属年级" prop="gradeId">
           <el-select v-model="classForm.gradeId" placeholder="请选择年级" style="width: 100%">
@@ -165,8 +165,8 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button type="primary" @click="submitClassForm">确 定</el-button>
-        <el-button @click="classOpen = false">取 消</el-button>
+        <el-button type="primary" @click="submitClassForm">确定</el-button>
+        <el-button @click="classOpen = false">取消</el-button>
       </template>
     </el-dialog>
   </div>
@@ -195,11 +195,11 @@ const data = reactive({
   gradeForm: {},
   classForm: {},
   gradeRules: {
-    gradeName: [{ required: true, message: "年级名称不能为空", trigger: "blur" }]
+    gradeName: [{ required: true, message: "请输入年级名称", trigger: "blur" }]
   },
   classRules: {
-    className: [{ required: true, message: "班级名称不能为空", trigger: "blur" }],
-    gradeId: [{ required: true, message: "请选择年级", trigger: "change" }]
+    className: [{ required: true, message: "请输入班级名称", trigger: "blur" }],
+    gradeId: [{ required: true, message: "请选择所属年级", trigger: "change" }]
   }
 })
 
@@ -260,7 +260,7 @@ function resetQuery() {
 
 function handleAddGrade() {
   gradeForm.value = { id: undefined, gradeName: '', sort: 0 }
-  gradeTitle.value = '新增年级'
+  gradeTitle.value = '添加年级'
   gradeOpen.value = true
 }
 
@@ -307,7 +307,7 @@ function handleDeleteGrade(row) {
 }
 
 function handleUpgrade() {
-  proxy.$modal.confirm('一键升级将把所有年级名称升级到下一级（如高一→高二），是否继续？').then(() => {
+  proxy.$modal.confirm('确认要自动升级所有年级吗？例如：一年级将升级为二年级，毕业年级将毕业。').then(() => {
     return upgradeGrades()
   }).then(res => {
     proxy.$modal.msgSuccess(res.data?.msg || res.msg || "升级成功")
@@ -318,7 +318,7 @@ function handleUpgrade() {
 
 function handleAddClass() {
   classForm.value = { id: undefined, className: '', gradeId: selectedGradeId.value }
-  classTitle.value = '新增班级'
+  classTitle.value = '添加班级'
   classOpen.value = true
 }
 
@@ -363,7 +363,7 @@ getGradeList()
 </script>
 
 <style scoped lang="scss">
-// ── 查询区域卡片化 ────────────────────────────────────
+// 搜索栏样式优化
 :deep(.el-form.el-form--inline) {
   background: #fff;
   border: 1px solid #dde6ff;
@@ -388,7 +388,7 @@ getGradeList()
   }
 }
 
-// ── 年级卡片 ──────────────────────────────────────────
+// 卡片样式优化
 :deep(.el-card) {
   border-radius: 10px;
   border-color: #dde6ff;
@@ -434,7 +434,7 @@ getGradeList()
   padding: 0 10px;
 }
 
-// ── 表格通用样式 ──────────────────────────────────────
+// 表格样式优化
 .custom-table {
   border-radius: 6px;
   
@@ -456,7 +456,7 @@ getGradeList()
   }
 }
 
-// ── 已选年级高亮行 ────────────────────────────────────
+// 选中行样式
 :deep(.el-table) {
   .current-row > td {
     background-color: #eff6ff !important;
@@ -480,7 +480,7 @@ getGradeList()
   font-family: 'Segoe UI', sans-serif;
 }
 
-// ── 操作按钮组 ────────────────────────────────────────
+// 操作按钮组
 .action-buttons {
   display: flex;
   justify-content: center;
@@ -499,7 +499,7 @@ getGradeList()
   }
 }
 
-// ── 操作按钮颜色 ──────────────────────────────────────
+// 按钮颜色
 :deep(.el-table) {
   .el-button[type=primary][icon=Edit]   { color: #3B82F6 !important; }
   .el-button[type=danger][icon=Delete] { color: #EF4444 !important; }

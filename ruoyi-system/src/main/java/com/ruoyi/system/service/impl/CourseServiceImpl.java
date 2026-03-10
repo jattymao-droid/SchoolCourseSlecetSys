@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Propagation;
 import com.ruoyi.common.core.domain.entity.SysUser;
 import com.ruoyi.common.core.domain.entity.CouClassQuota;
 import com.ruoyi.common.core.domain.entity.CouCourse;
@@ -20,8 +21,6 @@ import com.ruoyi.common.constant.UserConstants;
 import com.ruoyi.common.exception.ServiceException;
 import com.ruoyi.common.utils.SecurityUtils;
 import com.ruoyi.common.utils.StringUtils;
-import com.ruoyi.common.utils.poi.ExcelUtil;
-import com.ruoyi.system.domain.AssignStudentsImportDTO;
 import com.ruoyi.system.domain.CourseSelectedStudentVO;
 import com.ruoyi.common.core.domain.entity.StuStudentInfo;
 import com.ruoyi.system.mapper.CouClassQuotaMapper;
@@ -33,10 +32,10 @@ import com.ruoyi.system.service.ICourseService;
 import com.ruoyi.system.service.ISelectionService;
 import com.ruoyi.system.service.ISysGradeService;
 import com.ruoyi.system.service.ISysSemesterService;
-import com.ruoyi.common.core.domain.dto.CourseImportDTO;
 import com.ruoyi.system.service.ISysUserService;
 import com.ruoyi.system.service.ISysDeptService;
 import com.ruoyi.common.core.domain.entity.SysDept;
+import com.ruoyi.common.utils.poi.ExcelUtil;
 
 /**
  * 课程管理 服务实现
@@ -138,6 +137,25 @@ public class CourseServiceImpl implements ICourseService
         quotaMapper.physicalDeleteByCourseId(id);
         return courseMapper.deleteCourseById(id);
     }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int deleteCourseByIds(Long[] ids)
+    {
+        if (ids == null || ids.length == 0)
+        {
+            return 0;
+        }
+
+        int count = 0;
+        for (Long id : ids)
+        {
+            quotaMapper.physicalDeleteByCourseId(id);
+            count += courseMapper.deleteCourseById(id);
+        }
+        return count;
+    }
+
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -276,240 +294,9 @@ public class CourseServiceImpl implements ICourseService
         return count;
     }
 
-    @Override
-    public String importAssignStudents(Long courseId, MultipartFile file)
-    {
-        if (file == null || file.isEmpty())
-        {
-            throw new ServiceException("上传文件不能为空");
-        }
-        ExcelUtil<AssignStudentsImportDTO> util = new ExcelUtil<>(AssignStudentsImportDTO.class);
-        List<AssignStudentsImportDTO> list;
-        try
-        {
-            list = util.importExcel(file.getInputStream());
-        }
-        catch (Exception e)
-        {
-            throw new ServiceException("解析Excel失败：" + e.getMessage());
-        }
-        if (list == null || list.isEmpty())
-        {
-            throw new ServiceException("导入数据不能为空");
-        }
-        int successNum = 0;
-        int failureNum = 0;
-        StringBuilder failureMsg = new StringBuilder();
-        int maxFailureMsg = 10;
-
-        for (AssignStudentsImportDTO dto : list)
-        {
-            String studentNo = dto.getStudentNo() != null ? dto.getStudentNo().trim() : "";
-            if (StringUtils.isEmpty(studentNo))
-            {
-                failureNum++;
-                if (failureNum <= maxFailureMsg)
-                {
-                    failureMsg.append("<br/>").append(failureNum).append("、学号不能为空");
-                }
-                else if (failureNum == maxFailureMsg + 1)
-                {
-                    failureMsg.append("<br/>... (更多错误已省略)");
-                }
-                continue;
-            }
-            StuStudentInfo student = studentMapper.selectStudentByStudentNo(studentNo);
-            if (student == null)
-            {
-                failureNum++;
-                if (failureNum <= maxFailureMsg)
-                {
-                    failureMsg.append("<br/>").append(failureNum).append("、学号 ").append(studentNo).append(" 不存在");
-                }
-                else if (failureNum == maxFailureMsg + 1)
-                {
-                    failureMsg.append("<br/>... (更多错误已省略)");
-                }
-                continue;
-            }
-            try
-            {
-                assignStudents(courseId, Collections.singletonList(student.getUserId()));
-                successNum++;
-            }
-            catch (Exception e)
-            {
-                failureNum++;
-                if (failureNum <= maxFailureMsg)
-                {
-                    failureMsg.append("<br/>").append(failureNum).append("、学号 ").append(studentNo)
-                        .append(" ").append(student.getRealName()).append("：").append(e.getMessage());
-                }
-                else if (failureNum == maxFailureMsg + 1)
-                {
-                    failureMsg.append("<br/>... (更多错误已省略)");
-                }
-            }
-        }
-        StringBuilder result = new StringBuilder();
-        result.append("导入完成，成功 ").append(successNum).append(" 人");
-        if (failureNum > 0)
-        {
-            result.append("，失败 ").append(failureNum).append(" 人").append(failureMsg);
-        }
-        return result.toString();
-    }
-
-    @Override
-    @Transactional(rollbackFor = Exception.class)
-    public String importCourse(List<CourseImportDTO> dtoList, Boolean isUpdateSupport, String operName)
-    {
-        if (StringUtils.isNull(dtoList) || dtoList.size() == 0)
-        {
-            throw new ServiceException("导入课程数据不能为空！");
-        }
-        int successNum = 0;
-        int failureNum = 0;
-        StringBuilder successMsg = new StringBuilder();
-        StringBuilder failureMsg = new StringBuilder();
-        for (CourseImportDTO dto : dtoList)
-        {
-            String courseName = dto.getCourseName() != null ? dto.getCourseName() : "未知";
-            try
-            {
-                CouCourse course = dtoToCourse(dto);
-                List<CouClassQuota> quotaList = buildQuotaListFromDto(dto);
-                course.setQuotaList(quotaList);
-
-                if (StringUtils.isEmpty(course.getCourseName())) {
-                    throw new ServiceException("课程名称不能为空");
-                }
-                if (course.getWeekDay() == null || course.getWeekDay() < 1 || course.getWeekDay() > 5) {
-                    throw new ServiceException("星期必须为1-5（1=周一至5=周五）");
-                }
-                if (StringUtils.isEmpty(course.getGradeName())) {
-                    throw new ServiceException("年级名称不能为空");
-                }
-                if (StringUtils.isEmpty(course.getSemesterName())) {
-                    throw new ServiceException("学期名称不能为空");
-                }
-
-                SysGrade exactGrade = findGradeByName(course.getGradeName());
-                if (exactGrade == null) {
-                    throw new ServiceException("年级不存在: " + course.getGradeName());
-                }
-                course.setGradeId(exactGrade.getId());
-
-                SysSemester exactSemester = findSemesterByName(course.getSemesterName());
-                if (exactSemester == null) {
-                    throw new ServiceException("学期不存在: " + course.getSemesterName());
-                }
-                course.setSemesterId(exactSemester.getId());
-
-                if (StringUtils.isNotEmpty(course.getTeacherName())) {
-                    SysUser exactUser = findOrCreateTeacherUser(course.getTeacherName().trim(), operName);
-                    if (exactUser != null) {
-                        course.setTeacherId(exactUser.getUserId());
-                        course.setTeacherName(exactUser.getNickName());
-                    } else {
-                        course.setTeacherId(null);
-                        course.setTeacherName(course.getTeacherName().trim());
-                    }
-                }
-
-                CouCourse existingCourse = null;
-                CouCourse query = new CouCourse();
-                query.setCourseName(course.getCourseName());
-                query.setSemesterId(course.getSemesterId());
-                query.setGradeId(course.getGradeId());
-                query.setWeekDay(course.getWeekDay());
-                List<CouCourse> list = courseMapper.selectCourseList(query);
-                if (!list.isEmpty()) {
-                    existingCourse = list.get(0);
-                }
-
-                if (existingCourse == null)
-                {
-                    this.insertCourse(course);
-                    successNum++;
-                    successMsg.append("<br/>" + successNum + "、课程 " + course.getCourseName() + " 导入成功");
-                }
-                else if (isUpdateSupport)
-                {
-                    course.setId(existingCourse.getId());
-                    this.updateCourse(course);
-                    successNum++;
-                    successMsg.append("<br/>" + successNum + "、课程 " + course.getCourseName() + " 更新成功");
-                }
-                else
-                {
-                    failureNum++;
-                    failureMsg.append("<br/>" + failureNum + "、课程 " + course.getCourseName() + " 已存在");
-                }
-            }
-            catch (Exception e)
-            {
-                failureNum++;
-                failureMsg.append("<br/>" + failureNum + "、课程 " + courseName + " 导入失败：" + e.getMessage());
-            }
-        }
-        if (failureNum > 0)
-        {
-            failureMsg.insert(0, "很抱歉，导入失败！共 " + failureNum + " 条数据格式不正确，错误如下：");
-        }
-        else
-        {
-            successMsg.insert(0, "恭喜您，数据已全部导入成功！共 " + successNum + " 条，数据如下：");
-        }
-        return successMsg.toString() + failureMsg.toString();
-    }
-
-    private CouCourse dtoToCourse(CourseImportDTO dto)
-    {
-        CouCourse course = new CouCourse();
-        course.setCourseName(trimToNull(dto.getCourseName()));
-        course.setWeekDay(dto.getWeekDay());
-        course.setSemesterName(trimToNull(dto.getSemesterName()));
-        course.setGradeName(trimToNull(dto.getGradeName()));
-        course.setTeacherName(trimToNull(dto.getTeacherName()));
-        course.setLocation(trimToNull(dto.getLocation()));
-        return course;
-    }
-
-    private static String trimToNull(String s)
-    {
-        if (s == null) return null;
-        String t = s.trim();
-        return t.isEmpty() ? null : t;
-    }
-
-    private List<CouClassQuota> buildQuotaListFromDto(CourseImportDTO dto)
-    {
-        List<CouClassQuota> list = new ArrayList<>();
-        String gradeName = trimToNull(dto.getGradeName());
-        if (StringUtils.isEmpty(gradeName)) {
-            return list;
-        }
-        Integer[] quotas = { dto.getQuota1(), dto.getQuota2(), dto.getQuota3(), dto.getQuota4(), dto.getQuota5() };
-        String[] shortNames = { "1班", "2班", "3班", "4班", "5班" };
-        for (int i = 0; i < quotas.length; i++) {
-            Integer q = quotas[i];
-            if (q == null || q < 1) {
-                continue;
-            }
-            SysClass sysClass = findClassByGradeAndShortName(gradeName, shortNames[i]);
-            if (sysClass == null) {
-                continue;
-            }
-            CouClassQuota quota = new CouClassQuota();
-            quota.setClassId(sysClass.getId());
-            quota.setQuota(q);
-            list.add(quota);
-        }
-        return list;
-    }
 
     /** 按年级和班级简称查找班级，支持 "1班" 或 "八年级1班" 等格式 */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED, readOnly = true)
     private SysClass findClassByGradeAndShortName(String gradeName, String shortName)
     {
         SysClass c = classMapper.selectByGradeNameAndClassName(gradeName, shortName);
@@ -520,6 +307,7 @@ public class CourseServiceImpl implements ICourseService
         return classMapper.selectByGradeNameAndClassName(gradeName, fullName);
     }
 
+    @Transactional(propagation = Propagation.NOT_SUPPORTED, readOnly = true)
     private SysGrade findGradeByName(String gradeName)
     {
         SysGrade params = new SysGrade();
@@ -533,6 +321,7 @@ public class CourseServiceImpl implements ICourseService
         return null;
     }
 
+    @Transactional(propagation = Propagation.NOT_SUPPORTED, readOnly = true)
     private SysSemester findSemesterByName(String semesterName)
     {
         SysSemester params = new SysSemester();
@@ -547,11 +336,10 @@ public class CourseServiceImpl implements ICourseService
     }
 
     /**
-     * 查找教师用户，若不存在则自动创建（userType=02，角色=教师）
-     * 创建规则：userName=teacher_姓名，nickName=姓名，默认密码123456，角色=教师(101)，部门=103
-     * @return 教师用户，若查找和创建均失败则返回 null（不抛异常，课程照常导入）
+     * 查找教师用户（只读查询，不创建）
      */
-    private SysUser findOrCreateTeacherUser(String teacherName, String operName)
+    @Transactional(propagation = Propagation.NOT_SUPPORTED, readOnly = true)
+    private SysUser findTeacherUser(String teacherName)
     {
         // 1. 按昵称精确查找（支持已存在用户）
         SysUser user = findUserByNickName(teacherName);
@@ -561,11 +349,17 @@ public class CourseServiceImpl implements ICourseService
         // 2. 按 userName=teacher_姓名 查找（支持之前自动创建的用户）
         String userName = "teacher_" + teacherName;
         user = userService.selectUserByUserName(userName);
-        if (user != null) {
-            return user;
-        }
-        // 3. 不存在则自动创建
-        user = buildTeacherUser(teacherName);
+        return user;
+    }
+
+    /**
+     * 创建教师用户（在新事务中执行）
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+    private SysUser createTeacherUser(String teacherName, String operName)
+    {
+        String userName = "teacher_" + teacherName;
+        SysUser user = buildTeacherUser(teacherName);
         user.setCreateBy(operName);
         
         // 检查部门是否存在
@@ -600,6 +394,23 @@ public class CourseServiceImpl implements ICourseService
         return user;
     }
 
+    /**
+     * 查找教师用户，若不存在则自动创建（userType=02，角色=教师）
+     * 创建规则：userName=teacher_姓名，nickName=姓名，默认密码123456，角色=教师(101)，部门=103
+     * @return 教师用户，若查找和创建均失败则返回 null（不抛异常，课程照常导入）
+     */
+    private SysUser findOrCreateTeacherUser(String teacherName, String operName)
+    {
+        // 先查找
+        SysUser user = findTeacherUser(teacherName);
+        if (user != null) {
+            return user;
+        }
+        // 不存在则创建（在新事务中）
+        return createTeacherUser(teacherName, operName);
+    }
+
+    @Transactional(propagation = Propagation.NOT_SUPPORTED, readOnly = true)
     private SysUser findUserByNickName(String nickName)
     {
         SysUser params = new SysUser();
@@ -676,5 +487,592 @@ public class CourseServiceImpl implements ICourseService
         int deleted = selectionMapper.deleteBySemesterId(semesterId);
         quotaMapper.resetSelectedBySemesterId(semesterId);
         return deleted;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public String importCourse(MultipartFile file, boolean updateSupport, String operName)
+    {
+        if (file == null || file.isEmpty())
+        {
+            throw new ServiceException("上传文件不能为空");
+        }
+        ExcelUtil<CouCourse> util = new ExcelUtil<>(CouCourse.class);
+        List<CouCourse> list;
+        try
+        {
+            list = util.importExcel(file.getInputStream());
+        }
+        catch (Exception e)
+        {
+            throw new ServiceException("解析Excel失败：" + e.getMessage());
+        }
+        if (list == null || list.isEmpty())
+        {
+            throw new ServiceException("导入数据不能为空");
+        }
+        int successNum = 0;
+        int failureNum = 0;
+        StringBuilder failureMsg = new StringBuilder();
+        int maxFailureMsg = 10;
+        for (CouCourse row : list)
+        {
+            String courseName = row.getCourseName() != null ? row.getCourseName().trim() : "";
+            if (StringUtils.isEmpty(courseName))
+            {
+                failureNum++;
+                if (failureNum <= maxFailureMsg)
+                    failureMsg.append("<br/>").append(failureNum).append("、课程名称不能为空");
+                else if (failureNum == maxFailureMsg + 1)
+                    failureMsg.append("<br/>... (更多错误已省略)");
+                continue;
+            }
+            try
+            {
+                if (row.getSemesterName() != null && !row.getSemesterName().isEmpty())
+                {
+                    SysSemester sem = findSemesterByName(row.getSemesterName().trim());
+                    if (sem != null)
+                        row.setSemesterId(sem.getId());
+                }
+                if (row.getGradeName() != null && !row.getGradeName().isEmpty())
+                {
+                    SysGrade gr = findGradeByName(row.getGradeName().trim());
+                    if (gr != null)
+                        row.setGradeId(gr.getId());
+                }
+                if (row.getTeacherName() != null && !row.getTeacherName().isEmpty())
+                {
+                    SysUser tea = findOrCreateTeacherUser(row.getTeacherName().trim(), operName);
+                    if (tea != null)
+                    {
+                        row.setTeacherId(tea.getUserId());
+                        row.setTeacherName(tea.getNickName());
+                    }
+                }
+                if (row.getSemesterId() == null)
+                {
+                    throw new ServiceException("学期不存在: " + row.getSemesterName());
+                }
+                if (row.getGradeId() == null)
+                {
+                    throw new ServiceException("年级不存在: " + row.getGradeName());
+                }
+                if (row.getWeekDay() == null || row.getWeekDay() < 1 || row.getWeekDay() > 5)
+                {
+                    throw new ServiceException("星期必须为1-5（周一至周五）");
+                }
+                CouCourse query = new CouCourse();
+                query.setCourseName(courseName);
+                query.setSemesterId(row.getSemesterId());
+                query.setGradeId(row.getGradeId());
+                query.setWeekDay(row.getWeekDay());
+                List<CouCourse> exists = courseMapper.selectCourseList(query);
+                if (!exists.isEmpty() && updateSupport)
+                {
+                    CouCourse exist = exists.get(0);
+                    row.setId(exist.getId());
+                    row.setQuotaList(quotaMapper.selectQuotaByCourseId(exist.getId()));
+                    updateCourse(row);
+                    successNum++;
+                }
+                else if (exists.isEmpty())
+                {
+                    row.setId(null);
+                    row.setQuotaList(null);
+                    insertCourse(row);
+                    successNum++;
+                }
+                else
+                {
+                    failureNum++;
+                    if (failureNum <= maxFailureMsg)
+                        failureMsg.append("<br/>").append(failureNum).append("、课程「").append(courseName).append("」已存在");
+                    else if (failureNum == maxFailureMsg + 1)
+                        failureMsg.append("<br/>... (更多错误已省略)");
+                }
+            }
+            catch (Exception e)
+            {
+                failureNum++;
+                if (failureNum <= maxFailureMsg)
+                    failureMsg.append("<br/>").append(failureNum).append("、").append(courseName).append("：").append(e.getMessage());
+                else if (failureNum == maxFailureMsg + 1)
+                    failureMsg.append("<br/>... (更多错误已省略)");
+            }
+        }
+        StringBuilder result = new StringBuilder();
+        result.append("导入完成，成功 ").append(successNum).append(" 条");
+        if (failureNum > 0)
+            result.append("，失败 ").append(failureNum).append(" 条").append(failureMsg);
+        return result.toString();
+    }
+
+    @Override
+    public void exportCourseImportTemplate(javax.servlet.http.HttpServletResponse response)
+    {
+        try
+        {
+            // 获取所有年级
+            List<SysGrade> gradeList = gradeService.selectGradeList(new SysGrade());
+            if (gradeList == null || gradeList.isEmpty())
+            {
+                throw new ServiceException("系统中没有年级数据，无法生成模板");
+            }
+            
+            // 创建工作簿
+            org.apache.poi.ss.usermodel.Workbook workbook = new org.apache.poi.xssf.usermodel.XSSFWorkbook();
+            
+            // 创建样式
+            org.apache.poi.ss.usermodel.CellStyle headerStyle = workbook.createCellStyle();
+            headerStyle.setFillForegroundColor(org.apache.poi.ss.usermodel.IndexedColors.GREY_25_PERCENT.getIndex());
+            headerStyle.setFillPattern(org.apache.poi.ss.usermodel.FillPatternType.SOLID_FOREGROUND);
+            headerStyle.setBorderBottom(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+            headerStyle.setBorderTop(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+            headerStyle.setBorderLeft(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+            headerStyle.setBorderRight(org.apache.poi.ss.usermodel.BorderStyle.THIN);
+            org.apache.poi.ss.usermodel.Font headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            headerStyle.setFont(headerFont);
+            headerStyle.setAlignment(org.apache.poi.ss.usermodel.HorizontalAlignment.CENTER);
+            
+            // 为每个年级创建一个Sheet
+            for (SysGrade grade : gradeList)
+            {
+                // 查询该年级的所有班级
+                SysClass classQuery = new SysClass();
+                classQuery.setGradeId(grade.getId());
+                List<SysClass> classList = classMapper.selectClassList(classQuery);
+                
+                // 创建Sheet
+                String sheetName = grade.getGradeName();
+                org.apache.poi.ss.usermodel.Sheet sheet = workbook.createSheet(sheetName);
+                
+                // 创建表头行
+                org.apache.poi.ss.usermodel.Row headerRow = sheet.createRow(0);
+                int colIndex = 0;
+                
+                // 固定列
+                String[] fixedHeaders = {"课程名称", "星期", "教师姓名", "上课地点", "学期名称", "课程描述"};
+                for (String header : fixedHeaders)
+                {
+                    org.apache.poi.ss.usermodel.Cell cell = headerRow.createCell(colIndex++);
+                    cell.setCellValue(header);
+                    cell.setCellStyle(headerStyle);
+                    sheet.setColumnWidth(colIndex - 1, 4000);
+                }
+                
+                // 动态班级列
+                if (classList != null && !classList.isEmpty())
+                {
+                    for (SysClass clazz : classList)
+                    {
+                        org.apache.poi.ss.usermodel.Cell cell = headerRow.createCell(colIndex++);
+                        cell.setCellValue(clazz.getClassName());
+                        cell.setCellStyle(headerStyle);
+                        sheet.setColumnWidth(colIndex - 1, 3000);
+                    }
+                }
+                
+                // 添加一行示例数据
+                org.apache.poi.ss.usermodel.Row exampleRow = sheet.createRow(1);
+                exampleRow.createCell(0).setCellValue("示例课程");
+                exampleRow.createCell(1).setCellValue("1");
+                exampleRow.createCell(2).setCellValue("张老师");
+                exampleRow.createCell(3).setCellValue("教学楼101");
+                exampleRow.createCell(4).setCellValue("2024-2025学年第一学期");
+                exampleRow.createCell(5).setCellValue("这是一门示例课程");
+                
+                // 班级名额示例
+                if (classList != null && !classList.isEmpty())
+                {
+                    for (int i = 0; i < classList.size(); i++)
+                    {
+                        exampleRow.createCell(6 + i).setCellValue("30");
+                    }
+                }
+            }
+            
+            // 设置响应头
+            response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            response.setCharacterEncoding("utf-8");
+            String fileName = java.net.URLEncoder.encode("课程导入模板", "UTF-8").replaceAll("\\+", "%20");
+            response.setHeader("Content-disposition", "attachment;filename*=utf-8''" + fileName + ".xlsx");
+            
+            // 写入响应
+            workbook.write(response.getOutputStream());
+            workbook.close();
+        }
+        catch (Exception e)
+        {
+            throw new ServiceException("生成导入模板失败：" + e.getMessage());
+        }
+    }
+    
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public String importCourseWithQuota(MultipartFile file, boolean updateSupport, String operName)
+    {
+        if (file == null || file.isEmpty())
+        {
+            throw new ServiceException("上传文件不能为空");
+        }
+        
+        try
+        {
+            org.apache.poi.ss.usermodel.Workbook workbook = org.apache.poi.ss.usermodel.WorkbookFactory.create(file.getInputStream());
+            
+            int successNum = 0;
+            int failureNum = 0;
+            StringBuilder failureMsg = new StringBuilder();
+            int maxFailureMsg = 10;
+            
+            // 遍历所有Sheet（每个Sheet代表一个年级）
+            for (int sheetIndex = 0; sheetIndex < workbook.getNumberOfSheets(); sheetIndex++)
+            {
+                org.apache.poi.ss.usermodel.Sheet sheet = workbook.getSheetAt(sheetIndex);
+                String sheetName = sheet.getSheetName();
+                
+                // 根据Sheet名称查找年级
+                SysGrade grade = findGradeByName(sheetName);
+                if (grade == null)
+                {
+                    failureMsg.append("<br/>Sheet「").append(sheetName).append("」对应的年级不存在，已跳过");
+                    continue;
+                }
+                
+                // 读取表头（第一行）
+                org.apache.poi.ss.usermodel.Row headerRow = sheet.getRow(0);
+                if (headerRow == null)
+                {
+                    continue;
+                }
+                
+                // 解析表头，获取班级列信息
+                List<String> classNames = new ArrayList<>();
+                int classStartCol = 6; // 班级列从第7列开始（索引6）
+                for (int colIndex = classStartCol; colIndex < headerRow.getLastCellNum(); colIndex++)
+                {
+                    org.apache.poi.ss.usermodel.Cell cell = headerRow.getCell(colIndex);
+                    if (cell != null)
+                    {
+                        String className = cell.getStringCellValue();
+                        if (StringUtils.isNotEmpty(className))
+                        {
+                            classNames.add(className.trim());
+                        }
+                    }
+                }
+                
+                // 从第二行开始读取数据（第一行是表头，第二行可能是示例）
+                for (int rowIndex = 1; rowIndex <= sheet.getLastRowNum(); rowIndex++)
+                {
+                    org.apache.poi.ss.usermodel.Row row = sheet.getRow(rowIndex);
+                    if (row == null)
+                    {
+                        continue;
+                    }
+                    
+                    // 读取课程基本信息
+                    String courseName = getCellValue(row.getCell(0));
+                    if (StringUtils.isEmpty(courseName) || "示例课程".equals(courseName))
+                    {
+                        continue; // 跳过空行和示例行
+                    }
+                    
+                    try
+                    {
+                        CouCourse course = new CouCourse();
+                        course.setCourseName(courseName.trim());
+                        course.setGradeId(grade.getId());
+                        
+                        // 星期
+                        String weekDayStr = getCellValue(row.getCell(1));
+                        if (StringUtils.isNotEmpty(weekDayStr))
+                        {
+                            try
+                            {
+                                course.setWeekDay(Integer.parseInt(weekDayStr.trim()));
+                            }
+                            catch (NumberFormatException e)
+                            {
+                                throw new ServiceException("星期格式错误，应为1-5的数字");
+                            }
+                        }
+                        
+                        // 教师
+                        String teacherName = getCellValue(row.getCell(2));
+                        if (StringUtils.isNotEmpty(teacherName))
+                        {
+                            SysUser teacher = findOrCreateTeacherUser(teacherName.trim(), operName);
+                            if (teacher != null)
+                            {
+                                course.setTeacherId(teacher.getUserId());
+                            }
+                        }
+                        
+                        // 上课地点
+                        course.setLocation(getCellValue(row.getCell(3)));
+                        
+                        // 学期
+                        String semesterName = getCellValue(row.getCell(4));
+                        if (StringUtils.isNotEmpty(semesterName))
+                        {
+                            SysSemester semester = findSemesterByName(semesterName.trim());
+                            if (semester != null)
+                            {
+                                course.setSemesterId(semester.getId());
+                            }
+                            else
+                            {
+                                throw new ServiceException("学期不存在: " + semesterName);
+                            }
+                        }
+                        else
+                        {
+                            throw new ServiceException("学期名称不能为空");
+                        }
+                        
+                        // 课程描述
+                        course.setDescription(getCellValue(row.getCell(5)));
+                        
+                        // 验证必填字段
+                        if (course.getWeekDay() == null || course.getWeekDay() < 1 || course.getWeekDay() > 5)
+                        {
+                            throw new ServiceException("星期必须为1-5（周一至周五）");
+                        }
+                        
+                        // 读取班级名额
+                        List<CouClassQuota> quotaList = new ArrayList<>();
+                        for (int i = 0; i < classNames.size(); i++)
+                        {
+                            String className = classNames.get(i);
+                            org.apache.poi.ss.usermodel.Cell quotaCell = row.getCell(classStartCol + i);
+                            String quotaStr = getCellValue(quotaCell);
+                            
+                            if (StringUtils.isNotEmpty(quotaStr))
+                            {
+                                try
+                                {
+                                    int quota = Integer.parseInt(quotaStr.trim());
+                                    if (quota > 0)
+                                    {
+                                        // 查找班级
+                                        SysClass clazz = findClassByGradeAndShortName(grade.getGradeName(), className);
+                                        if (clazz != null)
+                                        {
+                                            CouClassQuota q = new CouClassQuota();
+                                            q.setClassId(clazz.getId());
+                                            q.setQuota(quota);
+                                            q.setSelected(0);
+                                            quotaList.add(q);
+                                        }
+                                    }
+                                }
+                                catch (NumberFormatException e)
+                                {
+                                    // 忽略非数字的名额
+                                }
+                            }
+                        }
+                        
+                        if (quotaList.isEmpty())
+                        {
+                            throw new ServiceException("至少需要为一个班级指定名额");
+                        }
+                        
+                        course.setQuotaList(quotaList);
+                        
+                        // 检查是否已存在
+                        CouCourse query = new CouCourse();
+                        query.setCourseName(courseName);
+                        query.setSemesterId(course.getSemesterId());
+                        query.setGradeId(course.getGradeId());
+                        query.setWeekDay(course.getWeekDay());
+                        List<CouCourse> exists = courseMapper.selectCourseList(query);
+                        
+                        if (!exists.isEmpty() && updateSupport)
+                        {
+                            CouCourse exist = exists.get(0);
+                            course.setId(exist.getId());
+                            updateCourse(course);
+                            successNum++;
+                        }
+                        else if (exists.isEmpty())
+                        {
+                            course.setId(null);
+                            insertCourse(course);
+                            successNum++;
+                        }
+                        else
+                        {
+                            failureNum++;
+                            if (failureNum <= maxFailureMsg)
+                                failureMsg.append("<br/>").append(failureNum).append("、课程「").append(courseName).append("」已存在");
+                            else if (failureNum == maxFailureMsg + 1)
+                                failureMsg.append("<br/>... (更多错误已省略)");
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        failureNum++;
+                        if (failureNum <= maxFailureMsg)
+                            failureMsg.append("<br/>").append(failureNum).append("、").append(courseName).append("：").append(e.getMessage());
+                        else if (failureNum == maxFailureMsg + 1)
+                            failureMsg.append("<br/>... (更多错误已省略)");
+                    }
+                }
+            }
+            
+            workbook.close();
+            
+            StringBuilder result = new StringBuilder();
+            result.append("导入完成，成功 ").append(successNum).append(" 条");
+            if (failureNum > 0)
+                result.append("，失败 ").append(failureNum).append(" 条").append(failureMsg);
+            return result.toString();
+        }
+        catch (Exception e)
+        {
+            throw new ServiceException("导入失败：" + e.getMessage());
+        }
+    }
+    
+    /**
+     * 获取单元格值（字符串形式）
+     */
+    private String getCellValue(org.apache.poi.ss.usermodel.Cell cell)
+    {
+        if (cell == null)
+        {
+            return "";
+        }
+        
+        switch (cell.getCellType())
+        {
+            case STRING:
+                return cell.getStringCellValue();
+            case NUMERIC:
+                if (org.apache.poi.ss.usermodel.DateUtil.isCellDateFormatted(cell))
+                {
+                    return new java.text.SimpleDateFormat("yyyy-MM-dd").format(cell.getDateCellValue());
+                }
+                else
+                {
+                    // 数字转字符串，去掉小数点
+                    double numValue = cell.getNumericCellValue();
+                    if (numValue == (long) numValue)
+                    {
+                        return String.valueOf((long) numValue);
+                    }
+                    else
+                    {
+                        return String.valueOf(numValue);
+                    }
+                }
+            case BOOLEAN:
+                return String.valueOf(cell.getBooleanCellValue());
+            case FORMULA:
+                try
+                {
+                    return cell.getStringCellValue();
+                }
+                catch (Exception e)
+                {
+                    return String.valueOf(cell.getNumericCellValue());
+                }
+            default:
+                return "";
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public String importAssignStudents(Long courseId, MultipartFile file, String operName)
+    {
+        if (file == null || file.isEmpty())
+        {
+            throw new ServiceException("上传文件不能为空");
+        }
+
+        // 验证课程是否存在
+        CouCourse course = courseMapper.selectCourseById(courseId);
+        if (course == null)
+        {
+            throw new ServiceException("课程不存在");
+        }
+
+        try
+        {
+            // 读取Excel文件
+            ExcelUtil<StuStudentInfo> util = new ExcelUtil<>(StuStudentInfo.class);
+            List<StuStudentInfo> studentList = util.importExcel(file.getInputStream());
+
+            if (studentList == null || studentList.isEmpty())
+            {
+                throw new ServiceException("导入数据为空");
+            }
+
+            int successNum = 0;
+            int failureNum = 0;
+            StringBuilder failureMsg = new StringBuilder();
+            int maxFailureMsg = 10;
+
+            List<Long> studentUserIds = new ArrayList<>();
+
+            for (StuStudentInfo student : studentList)
+            {
+                try
+                {
+                    // 根据学号查找学生
+                    String studentNo = student.getStudentNo();
+                    if (StringUtils.isEmpty(studentNo))
+                    {
+                        throw new ServiceException("学号不能为空");
+                    }
+
+                    StuStudentInfo existStudent = studentMapper.selectStudentByStudentNo(studentNo);
+                    if (existStudent == null)
+                    {
+                        throw new ServiceException("学号 " + studentNo + " 不存在");
+                    }
+
+                    studentUserIds.add(existStudent.getUserId());
+                    successNum++;
+                }
+                catch (Exception e)
+                {
+                    failureNum++;
+                    if (failureNum <= maxFailureMsg)
+                    {
+                        failureMsg.append("<br/>").append(failureNum).append("、学号 ")
+                                .append(student.getStudentNo()).append("：").append(e.getMessage());
+                    }
+                    else if (failureNum == maxFailureMsg + 1)
+                    {
+                        failureMsg.append("<br/>... (更多错误已省略)");
+                    }
+                }
+            }
+
+            // 批量分配学生
+            if (!studentUserIds.isEmpty())
+            {
+                int assignedCount = assignStudents(courseId, studentUserIds);
+                successNum = assignedCount;
+            }
+
+            StringBuilder result = new StringBuilder();
+            result.append("导入完成，成功分配 ").append(successNum).append(" 名学生");
+            if (failureNum > 0)
+            {
+                result.append("，失败 ").append(failureNum).append(" 条").append(failureMsg);
+            }
+            return result.toString();
+        }
+        catch (Exception e)
+        {
+            throw new ServiceException("导入失败：" + e.getMessage());
+        }
     }
 }

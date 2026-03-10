@@ -24,9 +24,7 @@ import com.ruoyi.common.core.domain.entity.CouCourse;
 import com.ruoyi.common.core.page.TableDataInfo;
 import com.ruoyi.common.enums.BusinessType;
 import com.ruoyi.common.utils.poi.ExcelUtil;
-import com.ruoyi.common.core.domain.dto.CourseImportDTO;
 import com.ruoyi.system.domain.AssignStudentsDTO;
-import com.ruoyi.system.domain.AssignStudentsImportDTO;
 import com.ruoyi.system.domain.CourseSelectedStudentVO;
 import com.ruoyi.system.service.ICourseService;
 
@@ -97,6 +95,18 @@ public class CourseController extends BaseController
         return toAjax(courseService.deleteCourseById(id));
     }
 
+    /**
+     * 批量删除课程
+     */
+    @PreAuthorize("@ss.hasPermi('course:course:remove')")
+    @Log(title = "课程管理", businessType = BusinessType.DELETE)
+    @DeleteMapping("/batch/{ids}")
+    public AjaxResult removeBatch(@PathVariable Long[] ids)
+    {
+        return toAjax(courseService.deleteCourseByIds(ids));
+    }
+
+
     @PreAuthorize("@ss.hasPermi('course:course:add')")
     @Log(title = "课程管理", businessType = BusinessType.INSERT)
     @PostMapping("/copyToNewSemester/{oldCourseId}/{newSemesterId}")
@@ -122,21 +132,26 @@ public class CourseController extends BaseController
         }
     }
 
+    /**
+     * 导入分配学生
+     */
     @PreAuthorize("@ss.hasPermi('course:course:edit')")
-    @Log(title = "课程管理", businessType = BusinessType.IMPORT)
+    @Log(title = "课程管理-导入分配学生", businessType = BusinessType.IMPORT)
     @PostMapping("/{id}/assignStudents/import")
-    public AjaxResult assignStudentsImport(@PathVariable("id") Long id, MultipartFile file) throws Exception
+    public AjaxResult importAssignStudents(@PathVariable("id") Long id, @RequestParam("file") MultipartFile file) throws Exception
     {
-        String message = courseService.importAssignStudents(id, file);
-        return success(message);
+        try
+        {
+            String message = courseService.importAssignStudents(id, file, getUsername());
+            return success(message);
+        }
+        catch (Exception e)
+        {
+            log.error("导入分配学生失败", e);
+            return AjaxResult.error("导入失败：" + e.getMessage());
+        }
     }
 
-    @PostMapping("/{id}/assignStudents/importTemplate")
-    public void assignStudentsImportTemplate(@PathVariable("id") Long id, HttpServletResponse response)
-    {
-        ExcelUtil<AssignStudentsImportDTO> util = new ExcelUtil<>(AssignStudentsImportDTO.class);
-        util.importTemplateExcel(response, "指定学生名单");
-    }
 
     @PreAuthorize("@ss.hasPermi('course:course:query')")
     @GetMapping("/{id}/selectedStudents")
@@ -174,23 +189,22 @@ public class CourseController extends BaseController
         util.exportExcel(response, list, "课程数据");
     }
 
-    @Log(title = "课程管理", businessType = BusinessType.IMPORT)
-    @PreAuthorize("@ss.hasPermi('course:course:import')")
-    @PostMapping("/importData")
-    public AjaxResult importData(MultipartFile file, boolean updateSupport) throws Exception
-    {
-        ExcelUtil<CourseImportDTO> util = new ExcelUtil<>(CourseImportDTO.class);
-        List<CourseImportDTO> dtoList = util.importExcel(file.getInputStream());
-        String operName = getUsername();
-        String message = courseService.importCourse(dtoList, updateSupport, operName);
-        return success(message);
-    }
-
+    @Log(title = "课程管理", businessType = BusinessType.EXPORT)
+    @PreAuthorize("@ss.hasPermi('course:course:list')")
     @PostMapping("/importTemplate")
     public void importTemplate(HttpServletResponse response)
     {
-        ExcelUtil<CourseImportDTO> util = new ExcelUtil<>(CourseImportDTO.class);
-        util.importTemplateExcel(response, "课程数据");
+        courseService.exportCourseImportTemplate(response);
+    }
+
+    @Log(title = "课程管理", businessType = BusinessType.IMPORT)
+    @PreAuthorize("@ss.hasPermi('course:course:add') or @ss.hasPermi('course:course:edit')")
+    @PostMapping("/importData")
+    public AjaxResult importData(@RequestParam("file") MultipartFile file,
+                                 @RequestParam(value = "updateSupport", required = false, defaultValue = "false") Boolean updateSupport) throws Exception
+    {
+        String message = courseService.importCourseWithQuota(file, Boolean.TRUE.equals(updateSupport), getUsername());
+        return success(message);
     }
 
     @PreAuthorize("@ss.hasPermi('course:course:edit')")

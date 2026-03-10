@@ -1,28 +1,28 @@
-Ôªø<template>
+<template>
    <div class="app-container">
       <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
-         <el-form-item label="ÁôªÂΩïÂú∞ÂùÄ" prop="ipaddr">
+         <el-form-item label="µ«¬ºµÿ÷∑" prop="ipaddr">
             <el-input
                v-model="queryParams.ipaddr"
-               placeholder="ËØ∑ËæìÂÖ•ÁôªÂΩïÂú∞ÂùÄ"
+               placeholder="«Î ‰»Îµ«¬ºµÿ÷∑"
                clearable
                style="width: 240px;"
                @keyup.enter="handleQuery"
             />
          </el-form-item>
-         <el-form-item label="Áî®Êà∑ÂêçÁß∞" prop="userName">
+         <el-form-item label="”√ªß√˚≥∆" prop="userName">
             <el-input
                v-model="queryParams.userName"
-               placeholder="ËØ∑ËæìÂÖ•Áî®Êà∑ÂêçÁß∞"
+               placeholder="«Î ‰»Î”√ªß√˚≥∆"
                clearable
                style="width: 240px;"
                @keyup.enter="handleQuery"
             />
          </el-form-item>
-         <el-form-item label="Áä∂ÊÄÅ" prop="status">
+         <el-form-item label="◊¥Ã¨" prop="status">
             <el-select
                v-model="queryParams.status"
-               placeholder="ÁôªÂΩïÁä∂ÊÄÅ"
+               placeholder="µ«¬º◊¥Ã¨"
                clearable
                style="width: 240px"
             >
@@ -34,20 +34,20 @@
                />
             </el-select>
          </el-form-item>
-         <el-form-item label="ÁôªÂΩïÊó∂Èó¥" style="width: 308px">
+         <el-form-item label="µ«¬º ±º‰" style="width: 308px">
             <el-date-picker
                v-model="dateRange"
                value-format="YYYY-MM-DD HH:mm:ss"
                type="daterange"
                range-separator="-"
-               start-placeholder="ÂºÄÂßãÊó•Êúü"
-               end-placeholder="ÁªìÊùüÊó•Êúü"
+               start-placeholder="ø™ º»’∆⁄"
+               end-placeholder="Ω· ¯»’∆⁄"
                :default-time="[new Date(2000, 1, 1, 0, 0, 0), new Date(2000, 1, 1, 23, 59, 59)]"
             ></el-date-picker>
          </el-form-item>
          <el-form-item>
-            <el-button type="primary" icon="Search" @click="handleQuery">ÊêúÁ¥¢</el-button>
-            <el-button icon="Refresh" @click="resetQuery">ÈáçÁΩÆ</el-button>
+            <el-button type="primary" icon="Search" @click="handleQuery">À—À˜</el-button>
+            <el-button icon="Refresh" @click="resetQuery">÷ÿ÷√</el-button>
          </el-form-item>
       </el-form>
 
@@ -60,7 +60,7 @@
                :disabled="multiple"
                @click="handleDelete"
                v-hasPermi="['monitor:logininfor:remove']"
-            >Âà†Èô§</el-button>
+            >…æ≥˝</el-button>
          </el-col>
          <el-col :span="1.5">
             <el-button
@@ -69,7 +69,7 @@
                icon="Delete"
                @click="handleClean"
                v-hasPermi="['monitor:logininfor:remove']"
-            >Ê∏ÖÁ©∫</el-button>
+            >«Âø’</el-button>
          </el-col>
          <el-col :span="1.5">
             <el-button
@@ -79,7 +79,7 @@
                :disabled="single"
                @click="handleUnlock"
                v-hasPermi="['monitor:logininfor:unlock']"
-            >Ëß£ÈîÅ</el-button>
+            >Ω‚À¯</el-button>
          </el-col>
          <el-col :span="1.5">
             <el-button
@@ -88,26 +88,26 @@
                icon="Download"
                @click="handleExport"
                v-hasPermi="['monitor:logininfor:export']"
-            >ÂØºÂá∫</el-button>
+            >µº≥ˆ</el-button>
          </el-col>
          <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
       </el-row>
 
       <el-table ref="logininforRef" v-loading="loading" :data="logininforList" @selection-change="handleSelectionChange" :default-sort="defaultSort" @sort-change="handleSortChange">
          <el-table-column type="selection" width="55" align="center" />
-         <el-table-column label="ËÆøÈóÆÁºñÂè∑" align="center" prop="infoId" />
-         <el-table-column label="Áî®Êà∑ÂêçÁß∞" align="center" prop="userName" :show-overflow-tooltip="true" sortable="custom" :sort-orders="['descending', 'ascending']" />
-         <el-table-column label="Âú∞ÂùÄ" align="center" prop="ipaddr" :show-overflow-tooltip="true" />
-         <el-table-column label="ÁôªÂΩïÂú∞ÁÇπ" align="center" prop="loginLocation" :show-overflow-tooltip="true" />
-         <el-table-column label="Êìç‰ΩúÁ≥ªÁªü" align="center" prop="os" :show-overflow-tooltip="true" />
-         <el-table-column label="ÊµèËßàÂô®" align="center" prop="browser" :show-overflow-tooltip="true" />
-         <el-table-column label="ÁôªÂΩïÁä∂ÊÄÅ" align="center" prop="status">
+         <el-table-column label="∑√Œ ±‡∫≈" align="center" prop="infoId" />
+         <el-table-column label="”√ªß√˚≥∆" align="center" prop="userName" :show-overflow-tooltip="true" sortable="custom" :sort-orders="['descending', 'ascending']" />
+         <el-table-column label="µÿ÷∑" align="center" prop="ipaddr" :show-overflow-tooltip="true" />
+         <el-table-column label="µ«¬ºµÿµ„" align="center" prop="loginLocation" :show-overflow-tooltip="true" />
+         <el-table-column label="≤Ÿ◊˜œµÕ≥" align="center" prop="os" :show-overflow-tooltip="true" />
+         <el-table-column label="‰Ø¿¿∆˜" align="center" prop="browser" :show-overflow-tooltip="true" />
+         <el-table-column label="µ«¬º◊¥Ã¨" align="center" prop="status">
             <template #default="scope">
                <dict-tag :options="sys_common_status" :value="scope.row.status" />
             </template>
          </el-table-column>
-         <el-table-column label="ÊèèËø∞" align="center" prop="msg" :show-overflow-tooltip="true" />
-         <el-table-column label="ËÆøÈóÆÊó∂Èó¥" align="center" prop="loginTime" sortable="custom" :sort-orders="['descending', 'ascending']" width="180">
+         <el-table-column label="√Ë ˆ" align="center" prop="msg" :show-overflow-tooltip="true" />
+         <el-table-column label="∑√Œ  ±º‰" align="center" prop="loginTime" sortable="custom" :sort-orders="['descending', 'ascending']" width="180">
             <template #default="scope">
                <span>{{ parseTime(scope.row.loginTime) }}</span>
             </template>
@@ -141,7 +141,7 @@ const total = ref(0)
 const dateRange = ref([])
 const defaultSort = ref({ prop: "loginTime", order: "descending" })
 
-// Êü•ËØ¢ÂèÇÊï∞
+// ≤È—Ø≤Œ ˝
 const queryParams = ref({
   pageNum: 1,
   pageSize: 10,
@@ -152,7 +152,7 @@ const queryParams = ref({
   isAsc: undefined
 })
 
-/** Êü•ËØ¢ÁôªÂΩïÊó•ÂøóÂàóË°® */
+/** ≤È—Øµ«¬º»’÷æ¡–±Ì */
 function getList() {
   loading.value = true
   list(proxy.addDateRange(queryParams.value, dateRange.value)).then(response => {
@@ -162,13 +162,13 @@ function getList() {
   })
 }
 
-/** ÊêúÁ¥¢ÊåâÈíÆÊìç‰Ωú */
+/** À—À˜∞¥≈•≤Ÿ◊˜ */
 function handleQuery() {
   queryParams.value.pageNum = 1
   getList()
 }
 
-/** ÈáçÁΩÆÊåâÈíÆÊìç‰Ωú */
+/** ÷ÿ÷√∞¥≈•≤Ÿ◊˜ */
 function resetQuery() {
   dateRange.value = []
   proxy.resetForm("queryRef")
@@ -176,7 +176,7 @@ function resetQuery() {
   proxy.$refs["logininforRef"].sort(defaultSort.value.prop, defaultSort.value.order)
 }
 
-/** Â§öÈÄâÊ°ÜÈÄâ‰∏≠Êï∞ÊçÆ */
+/** ∂‡—°øÚ—°÷– ˝æ› */
 function handleSelectionChange(selection) {
   ids.value = selection.map(item => item.infoId)
   multiple.value = !selection.length
@@ -184,45 +184,45 @@ function handleSelectionChange(selection) {
   selectName.value = selection.map(item => item.userName)
 }
 
-/** ÊéíÂ∫èËß¶Âèë‰∫ã‰ª∂ */
+/** ≈≈–Ú¥•∑¢ ¬º˛ */
 function handleSortChange(column, prop, order) {
   queryParams.value.orderByColumn = column.prop
   queryParams.value.isAsc = column.order
   getList()
 }
 
-/** Âà†Èô§ÊåâÈíÆÊìç‰Ωú */
+/** …æ≥˝∞¥≈•≤Ÿ◊˜ */
 function handleDelete(row) {
   const infoIds = row.infoId || ids.value
-  proxy.$modal.confirm('ÊòØÂê¶Á°ÆËÆ§Âà†Èô§ËÆøÈóÆÁºñÂè∑‰∏∫"' + infoIds + '"ÁöÑÊï∞ÊçÆÈ°π?').then(function () {
+  proxy.$modal.confirm(' «∑Ò»∑»œ…æ≥˝∑√Œ ±‡∫≈Œ™"' + infoIds + '"µƒ ˝æ›œÓ?').then(function () {
     return delLogininfor(infoIds)
   }).then(() => {
     getList()
-    proxy.$modal.msgSuccess("Âà†Èô§ÊàêÂäü")
+    proxy.$modal.msgSuccess("…æ≥˝≥…π¶")
   }).catch(() => {})
 }
 
-/** Ê∏ÖÁ©∫ÊåâÈíÆÊìç‰Ωú */
+/** «Âø’∞¥≈•≤Ÿ◊˜ */
 function handleClean() {
-  proxy.$modal.confirm("ÊòØÂê¶Á°ÆËÆ§Ê∏ÖÁ©∫ÊâÄÊúâÁôªÂΩïÊó•ÂøóÊï∞ÊçÆÈ°π?").then(function () {
+  proxy.$modal.confirm(" «∑Ò»∑»œ«Âø’À˘”–µ«¬º»’÷æ ˝æ›œÓ?").then(function () {
     return cleanLogininfor()
   }).then(() => {
     getList()
-    proxy.$modal.msgSuccess("Ê∏ÖÁ©∫ÊàêÂäü")
+    proxy.$modal.msgSuccess("«Âø’≥…π¶")
   }).catch(() => {})
 }
 
-/** Ëß£ÈîÅÊåâÈíÆÊìç‰Ωú */
+/** Ω‚À¯∞¥≈•≤Ÿ◊˜ */
 function handleUnlock() {
   const username = selectName.value
-  proxy.$modal.confirm('ÊòØÂê¶Á°ÆËÆ§Ëß£ÈîÅÁî®Êà∑"' + username + '"Êï∞ÊçÆÈ°π?').then(function () {
+  proxy.$modal.confirm(' «∑Ò»∑»œΩ‚À¯”√ªß"' + username + '" ˝æ›œÓ?').then(function () {
     return unlockLogininfor(username)
   }).then(() => {
-    proxy.$modal.msgSuccess("Áî®Êà∑" + username + "Ëß£ÈîÅÊàêÂäü")
+    proxy.$modal.msgSuccess("”√ªß" + username + "Ω‚À¯≥…π¶")
   }).catch(() => {})
 }
 
-/** ÂØºÂá∫ÊåâÈíÆÊìç‰Ωú */
+/** µº≥ˆ∞¥≈•≤Ÿ◊˜ */
 function handleExport() {
   proxy.download("monitor/logininfor/export", {
     ...queryParams.value,

@@ -41,7 +41,7 @@
             @change="handleStatusChange(scope.row)"
             v-hasPermi="['course:evaluation:edit']"
           />
-          <span class="ml-2">{{ scope.row.status === 1 ? '启用' : '停用' }}</span>
+          <span class="ml-2">{{ scope.row.status === 1 ? '启用' : '禁用' }}</span>
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" width="180" class-name="small-padding fixed-width">
@@ -66,7 +66,7 @@
         </el-form-item>
         <el-form-item label="分值" prop="score">
           <el-input-number v-model="form.score" :min="1" :max="100" controls-position="right" style="width: 120px" />
-          <span class="el-form-item__tip" style="margin-left: 8px; color: #909399">学生评分时 0 至该分值</span>
+          <span class="el-form-item__tip" style="margin-left: 8px; color: #909399">范围 1-100</span>
         </el-form-item>
         <el-form-item label="排序" prop="sort">
           <el-input-number v-model="form.sort" :min="0" controls-position="right" style="width: 120px" />
@@ -74,14 +74,14 @@
         <el-form-item label="状态" prop="status">
           <el-radio-group v-model="form.status">
             <el-radio :value="1">启用</el-radio>
-            <el-radio :value="0">停用</el-radio>
+            <el-radio :value="0">禁用</el-radio>
           </el-radio-group>
         </el-form-item>
       </el-form>
       <template #footer>
         <div class="dialog-footer">
-          <el-button type="primary" @click="submitForm">确 定</el-button>
-          <el-button @click="cancel">取 消</el-button>
+          <el-button type="primary" @click="submitForm">确定</el-button>
+          <el-button @click="cancel">取消</el-button>
         </div>
       </template>
     </el-dialog>
@@ -140,8 +140,8 @@ function getSemesterList() {
 
 function handleStatusChange(row) {
   const status = row.status
-  const text = status === 1 ? '启用' : '停用'
-  proxy.$modal.confirm('确认' + text + '题目"' + row.content + '"？').then(() => {
+  const text = status === 1 ? '启用' : '禁用'
+  proxy.$modal.confirm('确认要' + text + '评价内容"' + row.content + '"吗？').then(() => {
     return setQuestionStatus(row.id, status)
   }).then(() => {
     proxy.$modal.msgSuccess(text + '成功')
@@ -181,7 +181,7 @@ function resetQuery() {
 function handleAdd() {
   reset()
   open.value = true
-  title.value = '新增评价题目'
+  title.value = '添加评价'
 }
 
 function handleUpdate(row) {
@@ -189,7 +189,7 @@ function handleUpdate(row) {
   getQuestion(row.id).then(res => {
     form.value = res.data
     open.value = true
-    title.value = '修改评价题目'
+    title.value = '修改评价'
   })
 }
 
@@ -214,7 +214,7 @@ function submitForm() {
 }
 
 function handleDelete(row) {
-  proxy.$modal.confirm('是否确认删除题目"' + row.content + '"？').then(() => {
+  proxy.$modal.confirm('是否确认删除评价内容"' + row.content + '"？').then(() => {
     return delQuestion(row.id)
   }).then(() => {
     getList()

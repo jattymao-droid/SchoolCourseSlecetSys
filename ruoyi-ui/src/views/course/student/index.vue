@@ -1,5 +1,53 @@
 <template>
   <div class="app-container">
+    <!-- 学生统计卡片 -->
+    <el-row :gutter="16" class="stats-cards-row mb8">
+      <el-col :xs="24" :sm="12" :md="6">
+        <el-card class="stats-card stats-card-blue" shadow="hover">
+          <div class="stats-content">
+            <div class="stats-icon"><el-icon :size="32"><User /></el-icon></div>
+            <div class="stats-info">
+              <div class="stats-value">{{ (studentStats && studentStats.totalCount) ?? 0 }}</div>
+              <div class="stats-label">学生总数</div>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+      <el-col :xs="24" :sm="12" :md="6">
+        <el-card class="stats-card stats-card-green" shadow="hover">
+          <div class="stats-content">
+            <div class="stats-icon"><el-icon :size="32"><School /></el-icon></div>
+            <div class="stats-info">
+              <div class="stats-value">{{ (studentStats && studentStats.gradeCount) ?? 0 }}</div>
+              <div class="stats-label">年级数</div>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+      <el-col :xs="24" :sm="12" :md="6">
+        <el-card class="stats-card stats-card-orange" shadow="hover">
+          <div class="stats-content">
+            <div class="stats-icon"><el-icon :size="32"><OfficeBuilding /></el-icon></div>
+            <div class="stats-info">
+              <div class="stats-value">{{ (studentStats && studentStats.classCount) ?? 0 }}</div>
+              <div class="stats-label">班级数</div>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+      <el-col :xs="24" :sm="12" :md="6">
+        <el-card class="stats-card stats-card-purple" shadow="hover">
+          <div class="stats-content">
+            <div class="stats-icon"><el-icon :size="32"><List /></el-icon></div>
+            <div class="stats-info">
+              <div class="stats-value">{{ (studentStats && studentStats.pageCount) ?? 0 }}</div>
+              <div class="stats-label">当前页条数</div>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
+
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="88px">
       <el-form-item label="学号" prop="studentNo">
         <el-input v-model="queryParams.studentNo" placeholder="请输入学号" clearable style="width: 200px" @keyup.enter="handleQuery" />
@@ -36,10 +84,14 @@
       <el-col :span="1.5">
         <el-button type="danger" plain icon="Refresh" @click="handleResetAllPwd" v-hasPermi="['course:student:edit']">一键重置密码</el-button>
       </el-col>
+      <el-col :span="1.5">
+        <el-button type="danger" plain icon="Delete" :disabled="multiple" @click="handleBatchDelete" v-hasPermi="['course:student:remove']">批量删除</el-button>
+      </el-col>
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="studentList" border stripe class="student-table">
+    <el-table v-loading="loading" :data="studentList" border stripe class="student-table" @selection-change="handleSelectionChange">
+      <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="学号" align="center" prop="studentNo" min-width="140">
         <template #default="scope">
           <div class="student-no-cell">
@@ -174,8 +226,9 @@
 </template>
 
 <script setup name="Student">
+import { User, School, OfficeBuilding, List } from '@element-plus/icons-vue'
 import { getToken } from "@/utils/auth"
-import { listStudent, getStudent, addStudent, updateStudent, delStudent, resetStudentPwd, resetAllStudentPwd } from "@/api/course/student"
+import { listStudent, getStudent, addStudent, updateStudent, delStudent, delStudents, resetStudentPwd, resetAllStudentPwd } from "@/api/course/student"
 import { listGradeAll } from "@/api/course/grade"
 import { listClassByGrade } from "@/api/course/class"
 import { getConfigKey } from "@/api/system/config"
@@ -192,6 +245,17 @@ const showSearch = ref(true)
 const total = ref(0)
 const title = ref("")
 const resetPwdOpen = ref(false)
+const studentStats = ref({
+  totalCount: 0,
+  gradeCount: 0,
+  classCount: 0,
+  pageCount: 0
+})
+/** 系统班级总数（未选年级时用；在年级列表加载后按年级汇总得到） */
+const totalSystemClassCount = ref(0)
+const ids = ref([])
+const single = ref(true)
+const multiple = ref(true)
 
 const data = reactive({
   form: {},
@@ -227,18 +291,53 @@ const resetPwdRules = {
 
 const { queryParams, form, rules } = toRefs(data)
 
+function calculateStudentStats(list, totalCount) {
+  const rows = Array.isArray(list) ? list : []
+  const gradeId = queryParams.value.gradeId
+  // 选中年级时：该年级下的班级数（classList）；未选年级时：系统班级总数（totalSystemClassCount）
+  const classCount = gradeId
+    ? (classList.value?.length ?? 0)
+    : (totalSystemClassCount.value ?? 0)
+  studentStats.value = {
+    totalCount: totalCount != null && totalCount >= 0 ? totalCount : rows.length,
+    gradeCount: gradeList.value?.length ?? 0,
+    classCount,
+    pageCount: rows.length
+  }
+}
+
+/** 加载系统班级总数（按年级分别请求后汇总） */
+function loadTotalClassCount() {
+  const grades = gradeList.value || []
+  if (grades.length === 0) {
+    totalSystemClassCount.value = 0
+    return Promise.resolve(0)
+  }
+  return Promise.all(grades.map(g => listClassByGrade(g.id)))
+    .then(resList => resList.reduce((sum, res) => sum + (res.data?.length ?? 0), 0))
+    .then(n => {
+      totalSystemClassCount.value = n
+      return n
+    })
+    .catch(() => { totalSystemClassCount.value = 0; return 0 })
+}
+
 function getList() {
   loading.value = true
   listStudent(queryParams.value).then(response => {
     studentList.value = response.rows
     total.value = response.total
     loading.value = false
+    calculateStudentStats(response.rows, response.total)
   })
 }
 
 function getGradeList() {
   listGradeAll({}).then(res => {
     gradeList.value = res.data || []
+    loadTotalClassCount().then(() => {
+      calculateStudentStats(studentList.value, total.value)
+    })
   })
 }
 
@@ -249,6 +348,7 @@ function loadClassList(gradeId) {
   }
   listClassByGrade(gradeId).then(res => {
     classList.value = res.data || []
+    calculateStudentStats(studentList.value, total.value)
   })
 }
 
@@ -334,6 +434,22 @@ function submitForm() {
       }
     }
   })
+}
+
+function handleSelectionChange(selection) {
+  ids.value = selection.map(item => item.id)
+  single.value = selection.length !== 1
+  multiple.value = !selection.length
+}
+
+function handleBatchDelete() {
+  const idList = ids.value
+  proxy.$modal.confirm('是否确认删除选中的 ' + idList.length + ' 名学生？').then(() => {
+    return delStudents(idList)
+  }).then(res => {
+    getList()
+    proxy.$modal.msgSuccess(res.msg || "删除成功")
+  }).catch(() => {})
 }
 
 function handleDelete(row) {
@@ -566,4 +682,65 @@ getList()
   line-height: 1.5;
   margin-top: 6px;
 }
+
+// ── 学生统计卡片（与课程管理统一尺寸） ─────────────────
+.stats-cards-row {
+  margin-bottom: 16px;
+}
+.stats-cards-row .el-col {
+  display: flex;
+}
+.stats-card {
+  border-radius: 12px;
+  width: 100%;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  :deep(.el-card__body) {
+    padding: 16px;
+    flex: 1;
+    display: flex;
+    align-items: stretch;
+  }
+}
+.stats-content {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 88px;
+}
+.stats-icon {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+.stats-info {
+  flex: 1;
+  min-width: 0;
+  min-height: 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.stats-value {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #1e293b;
+}
+.stats-label {
+  font-size: 13px;
+  color: #64748b;
+  margin-top: 4px;
+}
+.stats-card-blue .stats-icon { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+.stats-card-green .stats-icon { background: linear-gradient(135deg, #10b981, #059669); }
+.stats-card-orange .stats-icon { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.stats-card-purple .stats-icon { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
 </style>

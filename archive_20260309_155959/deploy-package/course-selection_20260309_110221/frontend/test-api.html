@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>测试教师考核API</title>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <h1>教师考核API测试</h1>
+    <button onclick="testAPI()">测试API</button>
+    <pre id="result"></pre>
+
+    <script>
+        async function testAPI() {
+            const resultEl = document.getElementById('result');
+            resultEl.textContent = '正在请求...';
+            
+            try {
+                // 获取token（从localStorage）
+                const token = localStorage.getItem('Admin-Token');
+                
+                const response = await fetch('http://localhost:8080/course/teacherAssessment/list', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                resultEl.textContent = JSON.stringify(data, null, 2);
+                console.log('API响应:', data);
+            } catch (error) {
+                resultEl.textContent = '错误: ' + error.message;
+                console.error('API错误:', error);
+            }
+        }
+    </script>
+</body>
+</html>

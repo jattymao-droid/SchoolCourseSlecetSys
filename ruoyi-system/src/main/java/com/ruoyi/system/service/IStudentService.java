@@ -23,6 +23,13 @@ public interface IStudentService
 
     int deleteStudentById(Long id);
 
+    /**
+     * 批量删除学生
+     * @param ids 学生主键 id 数组（stu_student_info.id）
+     * @return 成功删除的数量
+     */
+    int deleteStudentByIds(Long[] ids);
+
     String importStudent(MultipartFile file, String operName) throws Exception;
 
     /**

@@ -55,7 +55,14 @@ router.beforeEach((to, from, next) => {
           })
         })
       } else {
-        next()
+        // 点击「教师考核」菜单时预加载组件，避免首次进入不渲染（需刷新才显示）
+        if (to.path === '/course/teacherAssessment') {
+          import('@/views/course/teacherAssessment/index.vue')
+            .then(() => next())
+            .catch(() => next())
+        } else {
+          next()
+        }
       }
     }
   } else {

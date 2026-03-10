@@ -43,6 +43,15 @@ export function delStudent(id) {
   })
 }
 
+// 批量删除学生
+export function delStudents(ids) {
+  return request({
+    url: '/course/student/batchRemove',
+    method: 'post',
+    data: ids
+  })
+}
+
 // 导出学生
 export function exportStudent(query) {
   return request({

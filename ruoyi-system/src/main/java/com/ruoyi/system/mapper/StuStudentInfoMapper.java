@@ -18,6 +18,8 @@ public interface StuStudentInfoMapper
 
     StuStudentInfo selectStudentByStudentNo(String studentNo);
 
+    int countStudentByStudentNoPhysical(String studentNo);
+
     int insertStudent(StuStudentInfo student);
 
     int updateStudent(StuStudentInfo student);

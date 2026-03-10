@@ -1,17 +1,17 @@
-Ôªø<template>
+<template>
    <div class="app-container">
       <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch">
-         <el-form-item label="‰ªªÂä°ÂêçÁß∞" prop="jobName">
+         <el-form-item label="»ŒŒÒ√˚≥∆" prop="jobName">
             <el-input
                v-model="queryParams.jobName"
-               placeholder="ËØ∑ËæìÂÖ•‰ªªÂä°ÂêçÁß∞"
+               placeholder="«Î ‰»Î»ŒŒÒ√˚≥∆"
                clearable
                style="width: 200px"
                @keyup.enter="handleQuery"
             />
          </el-form-item>
-         <el-form-item label="‰ªªÂä°ÁªÑÂêç" prop="jobGroup">
-            <el-select v-model="queryParams.jobGroup" placeholder="ËØ∑ÈÄâÊã©‰ªªÂä°ÁªÑÂêç" clearable style="width: 200px">
+         <el-form-item label="»ŒŒÒ◊È√˚" prop="jobGroup">
+            <el-select v-model="queryParams.jobGroup" placeholder="«Î—°‘Ò»ŒŒÒ◊È√˚" clearable style="width: 200px">
                <el-option
                   v-for="dict in sys_job_group"
                   :key="dict.value"
@@ -20,8 +20,8 @@
                />
             </el-select>
          </el-form-item>
-         <el-form-item label="‰ªªÂä°Áä∂ÊÄÅ" prop="status">
-            <el-select v-model="queryParams.status" placeholder="ËØ∑ÈÄâÊã©‰ªªÂä°Áä∂ÊÄÅ" clearable style="width: 200px">
+         <el-form-item label="»ŒŒÒ◊¥Ã¨" prop="status">
+            <el-select v-model="queryParams.status" placeholder="«Î—°‘Ò»ŒŒÒ◊¥Ã¨" clearable style="width: 200px">
                <el-option
                   v-for="dict in sys_job_status"
                   :key="dict.value"
@@ -31,8 +31,8 @@
             </el-select>
          </el-form-item>
          <el-form-item>
-            <el-button type="primary" icon="Search" @click="handleQuery">ÊêúÁ¥¢</el-button>
-            <el-button icon="Refresh" @click="resetQuery">ÈáçÁΩÆ</el-button>
+            <el-button type="primary" icon="Search" @click="handleQuery">À—À˜</el-button>
+            <el-button icon="Refresh" @click="resetQuery">÷ÿ÷√</el-button>
          </el-form-item>
       </el-form>
 
@@ -44,7 +44,7 @@
                icon="Plus"
                @click="handleAdd"
                v-hasPermi="['monitor:job:add']"
-            >Êñ∞Â¢û</el-button>
+            >–¬‘ˆ</el-button>
          </el-col>
          <el-col :span="1.5">
             <el-button
@@ -54,7 +54,7 @@
                :disabled="single"
                @click="handleUpdate"
                v-hasPermi="['monitor:job:edit']"
-            >‰øÆÊîπ</el-button>
+            >–ﬁ∏ƒ</el-button>
          </el-col>
          <el-col :span="1.5">
             <el-button
@@ -64,7 +64,7 @@
                :disabled="multiple"
                @click="handleDelete"
                v-hasPermi="['monitor:job:remove']"
-            >Âà†Èô§</el-button>
+            >…æ≥˝</el-button>
          </el-col>
          <el-col :span="1.5">
             <el-button
@@ -73,7 +73,7 @@
                icon="Download"
                @click="handleExport"
                v-hasPermi="['monitor:job:export']"
-            >ÂØºÂá∫</el-button>
+            >µº≥ˆ</el-button>
          </el-col>
          <el-col :span="1.5">
             <el-button
@@ -82,23 +82,23 @@
                icon="Operation"
                @click="handleJobLog"
                v-hasPermi="['monitor:job:query']"
-            >Êó•Âøó</el-button>
+            >»’÷æ</el-button>
          </el-col>
          <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
       </el-row>
 
       <el-table v-loading="loading" :data="jobList" @selection-change="handleSelectionChange">
          <el-table-column type="selection" width="55" align="center" />
-         <el-table-column label="‰ªªÂä°ÁºñÂè∑" width="100" align="center" prop="jobId" />
-         <el-table-column label="‰ªªÂä°ÂêçÁß∞" align="center" prop="jobName" :show-overflow-tooltip="true" />
-         <el-table-column label="‰ªªÂä°ÁªÑÂêç" align="center" prop="jobGroup">
+         <el-table-column label="»ŒŒÒ±‡∫≈" width="100" align="center" prop="jobId" />
+         <el-table-column label="»ŒŒÒ√˚≥∆" align="center" prop="jobName" :show-overflow-tooltip="true" />
+         <el-table-column label="»ŒŒÒ◊È√˚" align="center" prop="jobGroup">
             <template #default="scope">
                <dict-tag :options="sys_job_group" :value="scope.row.jobGroup" />
             </template>
          </el-table-column>
-         <el-table-column label="Ë∞ÉÁî®ÁõÆÊ†áÂ≠óÁ¨¶‰∏≤" align="center" prop="invokeTarget" :show-overflow-tooltip="true" />
-         <el-table-column label="cronÊâßË°åË°®ËææÂºè" align="center" prop="cronExpression" :show-overflow-tooltip="true" />
-         <el-table-column label="Áä∂ÊÄÅ" align="center">
+         <el-table-column label="µ˜”√ƒø±Í◊÷∑˚¥Æ" align="center" prop="invokeTarget" :show-overflow-tooltip="true" />
+         <el-table-column label="cron÷¥––±Ì¥Ô Ω" align="center" prop="cronExpression" :show-overflow-tooltip="true" />
+         <el-table-column label="◊¥Ã¨" align="center">
             <template #default="scope">
                <el-switch
                   v-model="scope.row.status"
@@ -108,21 +108,21 @@
                ></el-switch>
             </template>
          </el-table-column>
-         <el-table-column label="Êìç‰Ωú" align="center" width="200" class-name="small-padding fixed-width">
+         <el-table-column label="≤Ÿ◊˜" align="center" width="200" class-name="small-padding fixed-width">
             <template #default="scope">
-               <el-tooltip content="‰øÆÊîπ" placement="top">
+               <el-tooltip content="–ﬁ∏ƒ" placement="top">
                   <el-button link type="warning" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['monitor:job:edit']"></el-button>
                </el-tooltip>
-               <el-tooltip content="Âà†Èô§" placement="top">
+               <el-tooltip content="…æ≥˝" placement="top">
                   <el-button link type="danger" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['monitor:job:remove']"></el-button>
                </el-tooltip>
-               <el-tooltip content="ÊâßË°å‰∏ÄÊ¨°" placement="top">
+               <el-tooltip content="÷¥––“ª¥Œ" placement="top">
                   <el-button link type="primary" icon="CaretRight" @click="handleRun(scope.row)" v-hasPermi="['monitor:job:changeStatus']"></el-button>
                </el-tooltip>
-               <el-tooltip content="‰ªªÂä°ËØ¶ÁªÜ" placement="top">
+               <el-tooltip content="»ŒŒÒœÍœ∏" placement="top">
                   <el-button link type="primary" icon="View" @click="handleView(scope.row)" v-hasPermi="['monitor:job:query']"></el-button>
                </el-tooltip>
-               <el-tooltip content="Ë∞ÉÂ∫¶Êó•Âøó" placement="top">
+               <el-tooltip content="µ˜∂»»’÷æ" placement="top">
                   <el-button link type="primary" icon="Operation" @click="handleJobLog(scope.row)" v-hasPermi="['monitor:job:query']"></el-button>
                </el-tooltip>
             </template>
@@ -137,18 +137,18 @@
          @pagination="getList"
       />
 
-      <!-- Ê∑ªÂä†Êàñ‰øÆÊîπÂÆöÊó∂‰ªªÂä°ÂØπËØùÊ°Ü -->
+      <!-- ÃÌº”ªÚ–ﬁ∏ƒ∂® ±»ŒŒÒ∂‘ª∞øÚ -->
       <el-dialog :title="title" v-model="open" width="820px" append-to-body>
          <el-form ref="jobRef" :model="form" :rules="rules" label-width="120px">
             <el-row>
                <el-col :span="12">
-                  <el-form-item label="‰ªªÂä°ÂêçÁß∞" prop="jobName">
-                     <el-input v-model="form.jobName" placeholder="ËØ∑ËæìÂÖ•‰ªªÂä°ÂêçÁß∞" />
+                  <el-form-item label="»ŒŒÒ√˚≥∆" prop="jobName">
+                     <el-input v-model="form.jobName" placeholder="«Î ‰»Î»ŒŒÒ√˚≥∆" />
                   </el-form-item>
                </el-col>
                <el-col :span="12">
-                  <el-form-item label="‰ªªÂä°ÂàÜÁªÑ" prop="jobGroup">
-                     <el-select v-model="form.jobGroup" placeholder="ËØ∑ÈÄâÊã©">
+                  <el-form-item label="»ŒŒÒ∑÷◊È" prop="jobGroup">
+                     <el-select v-model="form.jobGroup" placeholder="«Î—°‘Ò">
                         <el-option
                            v-for="dict in sys_job_group"
                            :key="dict.value"
@@ -162,28 +162,28 @@
                   <el-form-item prop="invokeTarget">
                      <template #label>
                         <span>
-                           Ë∞ÉÁî®ÊñπÊ≥ï
+                           µ˜”√∑Ω∑®
                            <el-tooltip placement="top">
                               <template #content>
                                  <div>
-                                    BeanË∞ÉÁî®Á§∫‰æãÔºöryTask.ryParams('ry')
-                                    <br />ClassÁ±ªË∞ÉÁî®Á§∫‰æãÔºöcom.ruoyi.quartz.task.RyTask.ryParams('ry')
-                                    <br />ÂèÇÊï∞ËØ¥ÊòéÔºöÊîØÊåÅÂ≠óÁ¨¶‰∏≤ÔºåÂ∏ÉÂ∞îÁ±ªÂûãÔºåÈïøÊï¥ÂûãÔºåÊµÆÁÇπÂûãÔºåÊï¥Âûã
+                                    Beanµ˜”√ æ¿˝£∫ryTask.ryParams('ry')
+                                    <br />Class¿‡µ˜”√ æ¿˝£∫com.ruoyi.quartz.task.RyTask.ryParams('ry')
+                                    <br />≤Œ ˝Àµ√˜£∫÷ß≥÷◊÷∑˚¥Æ£¨≤º∂˚¿‡–Õ£¨≥§’˚–Õ£¨∏°µ„–Õ£¨’˚–Õ
                                  </div>
                               </template>
                               <el-icon><question-filled /></el-icon>
                            </el-tooltip>
                         </span>
                      </template>
-                     <el-input v-model="form.invokeTarget" placeholder="ËØ∑ËæìÂÖ•Ë∞ÉÁî®ÁõÆÊ†áÂ≠óÁ¨¶‰∏≤" />
+                     <el-input v-model="form.invokeTarget" placeholder="«Î ‰»Îµ˜”√ƒø±Í◊÷∑˚¥Æ" />
                   </el-form-item>
                </el-col>
                <el-col :span="24">
-                  <el-form-item label="cronË°®ËææÂºè" prop="cronExpression">
-                     <el-input v-model="form.cronExpression" placeholder="ËØ∑ËæìÂÖ•cronÊâßË°åË°®ËææÂºè">
+                  <el-form-item label="cron±Ì¥Ô Ω" prop="cronExpression">
+                     <el-input v-model="form.cronExpression" placeholder="«Î ‰»Îcron÷¥––±Ì¥Ô Ω">
                         <template #append>
                            <el-button type="primary" @click="handleShowCron">
-                              ÁîüÊàêË°®ËææÂºè
+                              …˙≥…±Ì¥Ô Ω
                               <i class="el-icon-time el-icon--right"></i>
                            </el-button>
                         </template>
@@ -191,7 +191,7 @@
                   </el-form-item>
                </el-col>
                <el-col :span="24" v-if="form.jobId !== undefined">
-                  <el-form-item label="Áä∂ÊÄÅ">
+                  <el-form-item label="◊¥Ã¨">
                      <el-radio-group v-model="form.status">
                         <el-radio
                            v-for="dict in sys_job_status"
@@ -202,19 +202,19 @@
                   </el-form-item>
                </el-col>
                <el-col :span="12">
-                  <el-form-item label="ÊâßË°åÁ≠ñÁï•" prop="misfirePolicy">
+                  <el-form-item label="÷¥––≤ﬂ¬‘" prop="misfirePolicy">
                      <el-radio-group v-model="form.misfirePolicy">
-                        <el-radio-button value="1">Á´ãÂç≥ÊâßË°å</el-radio-button>
-                        <el-radio-button value="2">ÊâßË°å‰∏ÄÊ¨°</el-radio-button>
-                        <el-radio-button value="3">ÊîæÂºÉÊâßË°å</el-radio-button>
+                        <el-radio-button value="1">¡¢º¥÷¥––</el-radio-button>
+                        <el-radio-button value="2">÷¥––“ª¥Œ</el-radio-button>
+                        <el-radio-button value="3">∑≈∆˙÷¥––</el-radio-button>
                      </el-radio-group>
                   </el-form-item>
                </el-col>
                <el-col :span="12">
-                  <el-form-item label="ÊòØÂê¶Âπ∂Âèë" prop="concurrent">
+                  <el-form-item label=" «∑Ò≤¢∑¢" prop="concurrent">
                      <el-radio-group v-model="form.concurrent">
-                        <el-radio-button value="0">ÂÖÅËÆ∏</el-radio-button>
-                        <el-radio-button value="1">Á¶ÅÊ≠¢</el-radio-button>
+                        <el-radio-button value="0">‘ –Ì</el-radio-button>
+                        <el-radio-button value="1">Ω˚÷π</el-radio-button>
                      </el-radio-group>
                   </el-form-item>
                </el-col>
@@ -222,62 +222,62 @@
          </el-form>
          <template #footer>
             <div class="dialog-footer">
-               <el-button type="primary" @click="submitForm">Á°Æ ÂÆö</el-button>
-               <el-button @click="cancel">Âèñ Ê∂à</el-button>
+               <el-button type="primary" @click="submitForm">»∑ ∂®</el-button>
+               <el-button @click="cancel">»° œ˚</el-button>
             </div>
          </template>
       </el-dialog>
 
-     <el-dialog title="CronË°®ËææÂºèÁîüÊàêÂô®" v-model="openCron" append-to-body destroy-on-close>
+     <el-dialog title="Cron±Ì¥Ô Ω…˙≥…∆˜" v-model="openCron" append-to-body destroy-on-close>
        <crontab ref="crontabRef" @hide="openCron=false" @fill="crontabFill" :expression="expression"></crontab>
      </el-dialog>
 
-      <!-- ‰ªªÂä°Êó•ÂøóËØ¶ÁªÜ -->
-      <el-dialog title="‰ªªÂä°ËØ¶ÁªÜ" v-model="openView" width="700px" append-to-body>
+      <!-- »ŒŒÒ»’÷æœÍœ∏ -->
+      <el-dialog title="»ŒŒÒœÍœ∏" v-model="openView" width="700px" append-to-body>
          <el-form :model="form" label-width="120px">
             <el-row>
                <el-col :span="12">
-                  <el-form-item label="‰ªªÂä°ÁºñÂè∑Ôºö">{{ form.jobId }}</el-form-item>
-                  <el-form-item label="‰ªªÂä°ÂêçÁß∞Ôºö">{{ form.jobName }}</el-form-item>
+                  <el-form-item label="»ŒŒÒ±‡∫≈£∫">{{ form.jobId }}</el-form-item>
+                  <el-form-item label="»ŒŒÒ√˚≥∆£∫">{{ form.jobName }}</el-form-item>
                </el-col>
                <el-col :span="12">
-                  <el-form-item label="‰ªªÂä°ÂàÜÁªÑÔºö">{{ jobGroupFormat(form) }}</el-form-item>
-                  <el-form-item label="ÂàõÂª∫Êó∂Èó¥Ôºö">{{ form.createTime }}</el-form-item>
+                  <el-form-item label="»ŒŒÒ∑÷◊È£∫">{{ jobGroupFormat(form) }}</el-form-item>
+                  <el-form-item label="¥¥Ω® ±º‰£∫">{{ form.createTime }}</el-form-item>
                </el-col>
                <el-col :span="12">
-                  <el-form-item label="cronË°®ËææÂºèÔºö">{{ form.cronExpression }}</el-form-item>
+                  <el-form-item label="cron±Ì¥Ô Ω£∫">{{ form.cronExpression }}</el-form-item>
                </el-col>
                <el-col :span="12">
-                  <el-form-item label="‰∏ãÊ¨°ÊâßË°åÊó∂Èó¥Ôºö">{{ parseTime(form.nextValidTime) }}</el-form-item>
+                  <el-form-item label="œ¬¥Œ÷¥–– ±º‰£∫">{{ parseTime(form.nextValidTime) }}</el-form-item>
                </el-col>
                <el-col :span="24">
-                  <el-form-item label="Ë∞ÉÁî®ÁõÆÊ†áÊñπÊ≥ïÔºö">{{ form.invokeTarget }}</el-form-item>
+                  <el-form-item label="µ˜”√ƒø±Í∑Ω∑®£∫">{{ form.invokeTarget }}</el-form-item>
                </el-col>
                <el-col :span="12">
-                  <el-form-item label="‰ªªÂä°Áä∂ÊÄÅÔºö">
-                     <div v-if="form.status == 0">Ê≠£Â∏∏</div>
-                     <div v-else-if="form.status == 1">ÊöÇÂÅú</div>
+                  <el-form-item label="»ŒŒÒ◊¥Ã¨£∫">
+                     <div v-if="form.status == 0">’˝≥£</div>
+                     <div v-else-if="form.status == 1">‘›Õ£</div>
                   </el-form-item>
                </el-col>
                <el-col :span="12">
-                  <el-form-item label="ÊòØÂê¶Âπ∂ÂèëÔºö">
-                     <div v-if="form.concurrent == 0">ÂÖÅËÆ∏</div>
-                     <div v-else-if="form.concurrent == 1">Á¶ÅÊ≠¢</div>
+                  <el-form-item label=" «∑Ò≤¢∑¢£∫">
+                     <div v-if="form.concurrent == 0">‘ –Ì</div>
+                     <div v-else-if="form.concurrent == 1">Ω˚÷π</div>
                   </el-form-item>
                </el-col>
                <el-col :span="12">
-                  <el-form-item label="ÊâßË°åÁ≠ñÁï•Ôºö">
-                     <div v-if="form.misfirePolicy == 0">ÈªòËÆ§Á≠ñÁï•</div>
-                     <div v-else-if="form.misfirePolicy == 1">Á´ãÂç≥ÊâßË°å</div>
-                     <div v-else-if="form.misfirePolicy == 2">ÊâßË°å‰∏ÄÊ¨°</div>
-                     <div v-else-if="form.misfirePolicy == 3">ÊîæÂºÉÊâßË°å</div>
+                  <el-form-item label="÷¥––≤ﬂ¬‘£∫">
+                     <div v-if="form.misfirePolicy == 0">ƒ¨»œ≤ﬂ¬‘</div>
+                     <div v-else-if="form.misfirePolicy == 1">¡¢º¥÷¥––</div>
+                     <div v-else-if="form.misfirePolicy == 2">÷¥––“ª¥Œ</div>
+                     <div v-else-if="form.misfirePolicy == 3">∑≈∆˙÷¥––</div>
                   </el-form-item>
                </el-col>
             </el-row>
          </el-form>
          <template #footer>
             <div class="dialog-footer">
-               <el-button @click="openView = false">ÂÖ≥ Èó≠</el-button>
+               <el-button @click="openView = false">πÿ ±’</el-button>
             </div>
          </template>
       </el-dialog>
@@ -315,15 +315,15 @@ const data = reactive({
     status: undefined
   },
   rules: {
-    jobName: [{ required: true, message: "‰ªªÂä°ÂêçÁß∞‰∏çËÉΩ‰∏∫Á©∫", trigger: "blur" }],
-    invokeTarget: [{ required: true, message: "Ë∞ÉÁî®ÁõÆÊ†áÂ≠óÁ¨¶‰∏≤‰∏çËÉΩ‰∏∫Á©∫", trigger: "blur" }],
-    cronExpression: [{ required: true, message: "cronÊâßË°åË°®ËææÂºè‰∏çËÉΩ‰∏∫Á©∫", trigger: "change" }]
+    jobName: [{ required: true, message: "»ŒŒÒ√˚≥∆≤ªƒ‹Œ™ø’", trigger: "blur" }],
+    invokeTarget: [{ required: true, message: "µ˜”√ƒø±Í◊÷∑˚¥Æ≤ªƒ‹Œ™ø’", trigger: "blur" }],
+    cronExpression: [{ required: true, message: "cron÷¥––±Ì¥Ô Ω≤ªƒ‹Œ™ø’", trigger: "change" }]
   }
 })
 
 const { queryParams, form, rules } = toRefs(data)
 
-/** Êü•ËØ¢ÂÆöÊó∂‰ªªÂä°ÂàóË°® */
+/** ≤È—Ø∂® ±»ŒŒÒ¡–±Ì */
 function getList() {
   loading.value = true
   listJob(queryParams.value).then(response => {
@@ -333,18 +333,18 @@ function getList() {
   })
 }
 
-/** ‰ªªÂä°ÁªÑÂêçÂ≠óÂÖ∏ÁøªËØë */
+/** »ŒŒÒ◊È√˚◊÷µ‰∑≠“Î */
 function jobGroupFormat(row, column) {
   return proxy.selectDictLabel(sys_job_group.value, row.jobGroup)
 }
 
-/** ÂèñÊ∂àÊåâÈíÆ */
+/** »°œ˚∞¥≈• */
 function cancel() {
   open.value = false
   reset()
 }
 
-/** Ë°®ÂçïÈáçÁΩÆ */
+/** ±Ìµ•÷ÿ÷√ */
 function reset() {
   form.value = {
     jobId: undefined,
@@ -359,26 +359,26 @@ function reset() {
   proxy.resetForm("jobRef")
 }
 
-/** ÊêúÁ¥¢ÊåâÈíÆÊìç‰Ωú */
+/** À—À˜∞¥≈•≤Ÿ◊˜ */
 function handleQuery() {
   queryParams.value.pageNum = 1
   getList()
 }
 
-/** ÈáçÁΩÆÊåâÈíÆÊìç‰Ωú */
+/** ÷ÿ÷√∞¥≈•≤Ÿ◊˜ */
 function resetQuery() {
   proxy.resetForm("queryRef")
   handleQuery()
 }
 
-// Â§öÈÄâÊ°ÜÈÄâ‰∏≠Êï∞ÊçÆ
+// ∂‡—°øÚ—°÷– ˝æ›
 function handleSelectionChange(selection) {
   ids.value = selection.map(item => item.jobId)
   single.value = selection.length != 1
   multiple.value = !selection.length
 }
 
-// Êõ¥Â§öÊìç‰ΩúËß¶Âèë
+// ∏¸∂‡≤Ÿ◊˜¥•∑¢
 function handleCommand(command, row) {
   switch (command) {
     case "handleRun":
@@ -395,28 +395,28 @@ function handleCommand(command, row) {
   }
 }
 
-// ‰ªªÂä°Áä∂ÊÄÅ‰øÆÊîπ
+// »ŒŒÒ◊¥Ã¨–ﬁ∏ƒ
 function handleStatusChange(row) {
-  let text = row.status === "0" ? "ÂêØÁî®" : "ÂÅúÁî®"
-  proxy.$modal.confirm('Á°ÆËÆ§Ë¶Å"' + text + '""' + row.jobName + '"‰ªªÂä°Âêó?').then(function () {
+  let text = row.status === "0" ? "∆Ù”√" : "Õ£”√"
+  proxy.$modal.confirm('»∑»œ“™"' + text + '""' + row.jobName + '"»ŒŒÒ¬?').then(function () {
     return changeJobStatus(row.jobId, row.status)
   }).then(() => {
-    proxy.$modal.msgSuccess(text + "ÊàêÂäü")
+    proxy.$modal.msgSuccess(text + "≥…π¶")
   }).catch(function () {
     row.status = row.status === "0" ? "1" : "0"
   })
 }
 
-/* Á´ãÂç≥ÊâßË°å‰∏ÄÊ¨° */
+/* ¡¢º¥÷¥––“ª¥Œ */
 function handleRun(row) {
-  proxy.$modal.confirm('Á°ÆËÆ§Ë¶ÅÁ´ãÂç≥ÊâßË°å‰∏ÄÊ¨°"' + row.jobName + '"‰ªªÂä°Âêó?').then(function () {
+  proxy.$modal.confirm('»∑»œ“™¡¢º¥÷¥––“ª¥Œ"' + row.jobName + '"»ŒŒÒ¬?').then(function () {
     return runJob(row.jobId, row.jobGroup)
   }).then(() => {
-    proxy.$modal.msgSuccess("ÊâßË°åÊàêÂäü")
+    proxy.$modal.msgSuccess("÷¥––≥…π¶")
   }).catch(() => {})
 }
 
-/** ‰ªªÂä°ËØ¶ÁªÜ‰ø°ÊÅØ */
+/** »ŒŒÒœÍœ∏–≈œ¢ */
 function handleView(row) {
   getJob(row.jobId).then(response => {
     form.value = response.data
@@ -424,54 +424,54 @@ function handleView(row) {
   })
 }
 
-/** cronË°®ËææÂºèÊåâÈíÆÊìç‰Ωú */
+/** cron±Ì¥Ô Ω∞¥≈•≤Ÿ◊˜ */
 function handleShowCron() {
   expression.value = form.value.cronExpression
   openCron.value = true
 }
 
-/** Á°ÆÂÆöÂêéÂõû‰º†ÂÄº */
+/** »∑∂®∫Ûªÿ¥´÷µ */
 function crontabFill(value) {
   form.value.cronExpression = value
 }
 
-/** ‰ªªÂä°Êó•ÂøóÂàóË°®Êü•ËØ¢ */
+/** »ŒŒÒ»’÷æ¡–±Ì≤È—Ø */
 function handleJobLog(row) {
   const jobId = row.jobId || 0
   router.push('/monitor/job-log/index/' + jobId)
 }
 
-/** Êñ∞Â¢ûÊåâÈíÆÊìç‰Ωú */
+/** –¬‘ˆ∞¥≈•≤Ÿ◊˜ */
 function handleAdd() {
   reset()
   open.value = true
-  title.value = "Ê∑ªÂä†‰ªªÂä°"
+  title.value = "ÃÌº”»ŒŒÒ"
 }
 
-/** ‰øÆÊîπÊåâÈíÆÊìç‰Ωú */
+/** –ﬁ∏ƒ∞¥≈•≤Ÿ◊˜ */
 function handleUpdate(row) {
   reset()
   const jobId = row.jobId || ids.value
   getJob(jobId).then(response => {
     form.value = response.data
     open.value = true
-    title.value = "‰øÆÊîπ‰ªªÂä°"
+    title.value = "–ﬁ∏ƒ»ŒŒÒ"
   })
 }
 
-/** Êèê‰∫§ÊåâÈíÆ */
+/** Ã·Ωª∞¥≈• */
 function submitForm() {
   proxy.$refs["jobRef"].validate(valid => {
     if (valid) {
       if (form.value.jobId != undefined) {
         updateJob(form.value).then(response => {
-          proxy.$modal.msgSuccess("‰øÆÊîπÊàêÂäü")
+          proxy.$modal.msgSuccess("–ﬁ∏ƒ≥…π¶")
           open.value = false
           getList()
         })
       } else {
         addJob(form.value).then(response => {
-          proxy.$modal.msgSuccess("Êñ∞Â¢ûÊàêÂäü")
+          proxy.$modal.msgSuccess("–¬‘ˆ≥…π¶")
           open.value = false
           getList()
         })
@@ -480,18 +480,18 @@ function submitForm() {
   })
 }
 
-/** Âà†Èô§ÊåâÈíÆÊìç‰Ωú */
+/** …æ≥˝∞¥≈•≤Ÿ◊˜ */
 function handleDelete(row) {
   const jobIds = row.jobId || ids.value
-  proxy.$modal.confirm('ÊòØÂê¶Á°ÆËÆ§Âà†Èô§ÂÆöÊó∂‰ªªÂä°ÁºñÂè∑‰∏∫"' + jobIds + '"ÁöÑÊï∞ÊçÆÈ°π?').then(function () {
+  proxy.$modal.confirm(' «∑Ò»∑»œ…æ≥˝∂® ±»ŒŒÒ±‡∫≈Œ™"' + jobIds + '"µƒ ˝æ›œÓ?').then(function () {
     return delJob(jobIds)
   }).then(() => {
     getList()
-    proxy.$modal.msgSuccess("Âà†Èô§ÊàêÂäü")
+    proxy.$modal.msgSuccess("…æ≥˝≥…π¶")
   }).catch(() => {})
 }
 
-/** ÂØºÂá∫ÊåâÈíÆÊìç‰Ωú */
+/** µº≥ˆ∞¥≈•≤Ÿ◊˜ */
 function handleExport() {
   proxy.download("monitor/job/export", {
     ...queryParams.value,

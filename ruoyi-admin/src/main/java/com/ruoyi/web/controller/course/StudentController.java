@@ -105,6 +105,19 @@ public class StudentController extends BaseController
         return toAjax(studentService.deleteStudentById(id));
     }
 
+    @PreAuthorize("@ss.hasPermi('course:student:remove')")
+    @Log(title = "学生管理", businessType = BusinessType.DELETE)
+    @PostMapping("/batchRemove")
+    public AjaxResult removeBatch(@RequestBody Long[] ids)
+    {
+        if (ids == null || ids.length == 0)
+        {
+            return error("请选择要删除的学生");
+        }
+        int count = studentService.deleteStudentByIds(ids);
+        return success("成功删除 " + count + " 名学生");
+    }
+
     @PreAuthorize("@ss.hasPermi('course:student:edit')")
     @Log(title = "重置所有学生密码", businessType = BusinessType.UPDATE)
     @PostMapping("/resetAllPwd")

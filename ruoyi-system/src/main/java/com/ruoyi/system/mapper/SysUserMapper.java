@@ -114,6 +114,14 @@ public interface SysUserMapper
     public int deleteUserById(Long userId);
 
     /**
+     * 物理删除用户（用于学生删除后允许重新导入）
+     * 
+     * @param userId 用户ID
+     * @return 结果
+     */
+    public int deleteUserByIdPhysical(Long userId);
+
+    /**
      * 批量删除用户信息
      * 
      * @param userIds 需要删除的用户ID

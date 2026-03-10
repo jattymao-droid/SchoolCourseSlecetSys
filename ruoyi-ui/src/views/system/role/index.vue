@@ -1,54 +1,42 @@
-﻿<template>
+<template>
    <div class="app-container">
-      <el-form :model="queryParams" ref="queryRef" v-show="showSearch" :inline="true" label-width="68px">
-         <el-form-item label="角色名称" prop="roleName">
-            <el-input
-               v-model="queryParams.roleName"
-               placeholder="请输入角色名称"
-               clearable
-               style="width: 240px"
-               @keyup.enter="handleQuery"
-            />
-         </el-form-item>
-         <el-form-item label="权限字符" prop="roleKey">
-            <el-input
-               v-model="queryParams.roleKey"
-               placeholder="请输入权限字符"
-               clearable
-               style="width: 240px"
-               @keyup.enter="handleQuery"
-            />
-         </el-form-item>
-         <el-form-item label="状态" prop="status">
-            <el-select
-               v-model="queryParams.status"
-               placeholder="角色状态"
-               clearable
-               style="width: 240px"
-            >
-               <el-option
-                  v-for="dict in sys_normal_disable"
-                  :key="dict.value"
-                  :label="dict.label"
-                  :value="dict.value"
-               />
-            </el-select>
-         </el-form-item>
-         <el-form-item label="创建时间" style="width: 308px">
-            <el-date-picker
-               v-model="dateRange"
-               value-format="YYYY-MM-DD"
-               type="daterange"
-               range-separator="-"
-               start-placeholder="开始日期"
-               end-placeholder="结束日期"
-            ></el-date-picker>
-         </el-form-item>
-         <el-form-item>
-            <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
-            <el-button icon="Refresh" @click="resetQuery">重置</el-button>
-         </el-form-item>
-      </el-form>
+      <!-- 搜索区域 -->
+      <el-card v-show="showSearch" class="search-card" shadow="never">
+         <el-form :model="queryParams" ref="queryRef" class="search-form" label-width="82px">
+            <el-row :gutter="16">
+               <el-col :xs="24" :sm="12" :md="8" :lg="6">
+                  <el-form-item label="角色名称" prop="roleName">
+                     <el-input v-model="queryParams.roleName" placeholder="请输入角色名称" clearable @keyup.enter="handleQuery" />
+                  </el-form-item>
+               </el-col>
+               <el-col :xs="24" :sm="12" :md="8" :lg="6">
+                  <el-form-item label="权限字符" prop="roleKey">
+                     <el-input v-model="queryParams.roleKey" placeholder="请输入权限字符" clearable @keyup.enter="handleQuery" />
+                  </el-form-item>
+               </el-col>
+               <el-col :xs="24" :sm="12" :md="8" :lg="6">
+                  <el-form-item label="状态" prop="status">
+                     <el-select v-model="queryParams.status" placeholder="角色状态" clearable style="width: 100%">
+                        <el-option v-for="dict in sys_normal_disable" :key="dict.value" :label="dict.label" :value="dict.value" />
+                     </el-select>
+                  </el-form-item>
+               </el-col>
+               <el-col :xs="24" :sm="12" :md="8" :lg="6">
+                  <el-form-item label="创建时间">
+                     <el-date-picker v-model="dateRange" value-format="YYYY-MM-DD" type="daterange" range-separator="-"
+                        start-placeholder="开始日期" end-placeholder="结束日期" style="width: 100%" />
+                  </el-form-item>
+               </el-col>
+            </el-row>
+            <el-row>
+               <el-col :span="24" class="search-actions">
+                  <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
+                  <el-button icon="Refresh" @click="resetQuery">重置</el-button>
+               </el-col>
+            </el-row>
+         </el-form>
+      </el-card>
+
       <el-row :gutter="10" class="mb8">
          <el-col :span="1.5">
             <el-button
@@ -91,7 +79,7 @@
          <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
       </el-row>
 
-      <!-- 表格数据 -->
+      <!-- 数据列表 -->
       <el-table v-loading="loading" :data="roleList" @selection-change="handleSelectionChange">
          <el-table-column type="selection" width="55" align="center" />
          <el-table-column label="角色编号" prop="roleId" width="120" />
@@ -189,8 +177,8 @@
          </el-form>
          <template #footer>
             <div class="dialog-footer">
-               <el-button type="primary" @click="submitForm">确 定</el-button>
-               <el-button @click="cancel">取 消</el-button>
+               <el-button type="primary" @click="submitForm">确定</el-button>
+               <el-button @click="cancel">取消</el-button>
             </div>
          </template>
       </el-dialog>
@@ -233,8 +221,8 @@
          </el-form>
          <template #footer>
             <div class="dialog-footer">
-               <el-button type="primary" @click="submitDataScope">确 定</el-button>
-               <el-button @click="cancelDataScope">取 消</el-button>
+               <el-button type="primary" @click="submitDataScope">确定</el-button>
+               <el-button @click="cancelDataScope">取消</el-button>
             </div>
          </template>
       </el-dialog>
@@ -582,3 +570,19 @@ function cancelDataScope() {
 
 getList()
 </script>
+
+<style lang="scss" scoped>
+.search-card {
+  margin-bottom: 16px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  :deep(.el-card__body) { padding: 18px 20px 14px; }
+}
+.search-form :deep(.el-form-item) { margin-bottom: 14px; }
+.search-form :deep(.el-input),
+.search-form :deep(.el-date-editor) { width: 100%; }
+.search-actions {
+  display: flex; justify-content: flex-end; align-items: center; padding-top: 4px; margin-bottom: 0;
+  .el-button { margin-left: 10px; }
+}
+</style>

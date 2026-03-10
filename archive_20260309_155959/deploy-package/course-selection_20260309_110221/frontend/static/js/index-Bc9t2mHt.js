@@ -1,0 +1,1 @@
+import{_ as n}from"./index-CIDovjkD.js";import{r as t,o,n as p,M as i,i as e}from"./index-BRz-boDb.js";const _={__name:"index",setup(l){const r=t("https://xk.xmls.vip/prod-api/swagger-ui/index.html");return(u,s)=>(o(),p(e(n),{src:e(r),"onUpdate:src":s[0]||(s[0]=a=>i(r)?r.value=a:null)},null,8,["src"]))}};export{_ as default};
